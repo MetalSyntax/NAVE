@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:ital,wght@0,300..900;1,300..900&family=Manrope:wght@200..800&display=swap');
+
+@theme {
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+
+  --color-surface: #131313;
+  --color-surface-lowest: #0e0e0e;
+  --color-surface-low: #1b1b1b;
+  --color-surface-container: #1f1f1f;
+  --color-surface-high: #2a2a2a;
+  
+  --color-primary: #ffb4a8;
+  --color-primary-container: #ff5540;
+  
+  --color-secondary: #e9c349;
+  --color-secondary-container: #af8d11;
+  
+  --color-tertiary: #c6c6c7;
+  --color-surface-variant: #353535;
+  --color-on-surface-variant: #ebbbb4;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: #e2e2e2;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar for clean look */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-surface-variant); }
