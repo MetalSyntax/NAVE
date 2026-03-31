@@ -9,18 +9,32 @@ import { BottomNav } from './components/layout/BottomNav';
 import { DashboardScreen } from './views/Dashboard';
 import { LogsScreen } from './views/Logs';
 import { MaintenanceScreen } from './views/Maintenance';
-import { ProfileScreen } from './views/Profile';
+import { VehicleScreen } from './views/Vehicle';
+import { SettingsScreen } from './views/Settings';
+import { useSettings } from './hooks/useSettings';
+import { LoadingScreen } from './components/ui/Spinner';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { settings, isLoading } = useSettings();
+
+  // Apply theme to document
+  React.useEffect(() => {
+    if (settings?.theme) {
+      document.documentElement.setAttribute('data-theme', settings.theme);
+    }
+  }, [settings?.theme]);
+
+  if (isLoading && !settings) return <LoadingScreen />;
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <DashboardScreen />;
+      case 'dashboard': return <DashboardScreen setActiveTab={setActiveTab} />;
       case 'logs': return <LogsScreen />;
       case 'maintenance': return <MaintenanceScreen />;
-      case 'profile': return <ProfileScreen />;
-      default: return <DashboardScreen />;
+      case 'profile': return <VehicleScreen />;
+      case 'settings': return <SettingsScreen />;
+      default: return <DashboardScreen setActiveTab={setActiveTab} />;
     }
   };
 

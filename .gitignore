@@ -6,3 +6,4 @@ coverage/
 *.log
 .env*
 !.env.example
+apex_velocity_app.md

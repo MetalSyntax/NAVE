@@ -1,0 +1,10 @@
+{
+  "home_title": "Dashboard | Mantenimiento Vehicular",
+  "home_desc": "Monitorea la salud de tu vehículo en tiempo real.",
+  "logs_title": "Bitácoras | Mantenimiento Vehicular",
+  "logs_desc": "Agrega logs de telemetría y controla el nivel de gasolina.",
+  "maintenance_title": "Servicios | Mantenimiento Vehicular",
+  "maintenance_desc": "Lleva un historial detallado de costos y servicios mecánicos.",
+  "profile_title": "Perfil | Mantenimiento Vehicular",
+  "profile_desc": "Gestiona los detalles, seguro y fotos de tu vehículo."
+}

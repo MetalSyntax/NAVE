@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Rutas y sus variantes detectadas (Single Page App indexado por spiders de JS) -->
+  <url>
+    <loc>https://tu-dominio.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://tu-dominio.com/?lng=es" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://tu-dominio.com/?lng=en" />
+  </url>
+</urlset>

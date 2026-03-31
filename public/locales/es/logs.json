@@ -1,0 +1,14 @@
+{
+  "hero_distance": "DISTANCIA TOTAL",
+  "hero_efficiency": "ÚLTIMO CONSUMO",
+  "form_title": "REGISTRAR ENTRADA",
+  "label_odo": "ODÓMETRO ACTUAL (KM)",
+  "label_fuel": "COMBUSTIBLE (LITROS)",
+  "label_notes": "NOTAS ADICIONALES",
+  "confirm_delete": "¿Estás seguro de que deseas eliminar este registro?",
+  "recent_history": "HISTORIAL RECIENTE",
+  "column_date": "FECHA",
+  "column_odo": "ODÓMETRO",
+  "column_fuel": "COMB.",
+  "label_distance": "DISTANCIA (TRIP)"
+}

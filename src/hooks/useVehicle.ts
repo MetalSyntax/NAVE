@@ -1,0 +1,91 @@
+import { useState, useEffect, useCallback } from 'react';
+import { getAll, update, VehicleData, seedDefaults } from '../db/database';
+import { useSettings } from './useSettings';
+
+export function useVehicle() {
+  const { settings, updateSettings } = useSettings();
+  const activeVehicleId = settings?.activeVehicleId || 1;
+  const [vehicles, setVehicles] = useState<VehicleData[]>([]);
+  const [vehicle, setVehicle] = useState<VehicleData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchVehicle = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await seedDefaults(); // Ensure defaults exist
+      const data = await getAll<VehicleData>('vehicle');
+      setVehicles(data);
+      if (data.length > 0) {
+        let active = data.find(v => v.id === activeVehicleId);
+        if (!active) active = data[0];
+        setVehicle(active);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch vehicle profile');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeVehicleId]);
+
+  useEffect(() => {
+    fetchVehicle();
+  }, [fetchVehicle]);
+
+  const updateVehicle = async (data: VehicleData) => {
+    setIsLoading(true);
+    try {
+      if (!data.id) data.id = Date.now();
+      await update('vehicle', data);
+      await fetchVehicle();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update vehicle');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createNewVehicle = async () => {
+    const newId = Date.now();
+    const newVehicle: VehicleData = {
+      id: newId,
+      marca: 'NEW',
+      modelo: 'VEHICLE',
+      anio: new Date().getFullYear(),
+      color: '',
+      placa: '',
+      vin: '',
+      tipoCombustible: 'gasoline',
+      nivelGasolina: 100,
+      rendimientoKmL: 15,
+      kilometrajeActual: 0,
+      kilometrajeUltimoServicio: 0,
+      kilometrajeProximoServicio: 3000,
+      fechaUltimoServicio: new Date().toISOString(),
+      fechaProximoServicio: new Date().toISOString(),
+      aseguradora: '',
+      numeroPoliza: '',
+      vigenciaSeguro: new Date().toISOString(),
+      categoria: 'NEW',
+      identificadorUnidad: 'UNIDAD_' + newId.toString().slice(-4),
+      estadoSistema: 'OPTIMAL',
+      creadoEn: new Date().toISOString(),
+      actualizadoEn: new Date().toISOString(),
+    };
+    await update('vehicle', newVehicle);
+    if (updateSettings) {
+      await updateSettings({ activeVehicleId: newId });
+    }
+    await fetchVehicle();
+    return newId;
+  };
+
+  const setActiveVehicle = async (id: number) => {
+    if (updateSettings) {
+      await updateSettings({ activeVehicleId: id });
+    }
+  };
+
+  return { vehicle, vehicles, isLoading, error, updateVehicle, createNewVehicle, setActiveVehicle, refreshVehicle: fetchVehicle };
+}
