@@ -34,7 +34,7 @@ export function TopNav({ setActiveTab }: TopNavProps) {
             <Bike className="text-on-primary-container w-4 h-4" />
           </div>
           <h1 className="font-headline uppercase tracking-tighter font-black text-lg text-primary italic hidden sm:block">
-            APEX VELOCITY
+            NAVE
           </h1>
         </button>
 

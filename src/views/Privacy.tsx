@@ -13,7 +13,7 @@ export function PrivacyScreen({ setActiveTab }: PrivacyScreenProps) {
       title: 'Almacenamiento Local',
       color: 'text-primary',
       bg: 'bg-primary/10',
-      body: 'Apex Velocity almacena TODA tu información —datos del vehículo, imágenes, bitácoras y configuraciones— exclusivamente en tu dispositivo usando IndexedDB. Ningún dato sale de tu navegador.',
+      body: 'NAVE almacena TODA tu información —datos del vehículo, imágenes, bitácoras y configuraciones— exclusivamente en tu dispositivo usando IndexedDB. Ningún dato sale de tu navegador.',
     },
     {
       icon: Eye,
@@ -54,7 +54,7 @@ export function PrivacyScreen({ setActiveTab }: PrivacyScreenProps) {
 
   return (
     <div className="animate-in fade-in duration-500 pb-12">
-      <Helmet><title>Política de Privacidad | Apex Velocity</title></Helmet>
+      <Helmet><title>Política de Privacidad | NAVE</title></Helmet>
 
       <button
         onClick={() => setActiveTab('settings')}
@@ -80,7 +80,7 @@ export function PrivacyScreen({ setActiveTab }: PrivacyScreenProps) {
         <div>
           <p className="font-headline font-black text-base uppercase text-primary mb-1">Compromiso de privacidad</p>
           <p className="text-sm text-on-surface font-body leading-relaxed">
-            Apex Velocity fue diseñada con privacidad desde el primer día. <strong>Cero datos enviados</strong>, <strong>cero rastreo</strong>, <strong>cero servidores</strong>. Tu información de mantenimiento vehicular es únicamente tuya.
+            NAVE fue diseñada con privacidad desde el primer día. <strong>Cero datos enviados</strong>, <strong>cero rastreo</strong>, <strong>cero servidores</strong>. Tu información de mantenimiento vehicular es únicamente tuya.
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ export function PrivacyScreen({ setActiveTab }: PrivacyScreenProps) {
 
       <div className="mt-6 bg-surface-container rounded-2xl p-5 shadow-elevation-1 max-w-3xl">
         <p className="text-[10px] text-surface-variant uppercase tracking-widest font-bold text-center">
-          Apex Velocity · Todos los datos se almacenan localmente en tu dispositivo · Versión 1.0
+          NAVE · Todos los datos se almacenan localmente en tu dispositivo · Versión 1.0
         </p>
       </div>
     </div>

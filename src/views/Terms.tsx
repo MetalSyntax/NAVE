@@ -9,7 +9,7 @@ interface TermsScreenProps {
 export function TermsScreen({ setActiveTab }: TermsScreenProps) {
   return (
     <div className="animate-in fade-in duration-500 pb-12">
-      <Helmet><title>Términos y Condiciones | Apex Velocity</title></Helmet>
+      <Helmet><title>Términos y Condiciones | NAVE</title></Helmet>
 
       {/* Back */}
       <button
@@ -34,11 +34,11 @@ export function TermsScreen({ setActiveTab }: TermsScreenProps) {
         {[
           {
             title: '1. Aceptación',
-            body: 'Al utilizar Apex Velocity aceptas estos términos. Si no estás de acuerdo, por favor deja de usar la aplicación. Estos términos pueden actualizarse en cualquier momento; el uso continuado implica aceptación de los cambios.',
+            body: 'Al utilizar NAVE aceptas estos términos. Si no estás de acuerdo, por favor deja de usar la aplicación. Estos términos pueden actualizarse en cualquier momento; el uso continuado implica aceptación de los cambios.',
           },
           {
             title: '2. Descripción del Servicio',
-            body: 'Apex Velocity es una aplicación personal de control y telemetría vehicular. Permite registrar datos de mantenimiento, consumo de combustible, historial de servicios e información del vehículo. La aplicación opera completamente de forma local en tu dispositivo.',
+            body: 'NAVE es una aplicación personal de control y telemetría vehicular. Permite registrar datos de mantenimiento, consumo de combustible, historial de servicios e información del vehículo. La aplicación opera completamente de forma local en tu dispositivo.',
           },
           {
             title: '3. Almacenamiento de Datos',
@@ -58,11 +58,11 @@ export function TermsScreen({ setActiveTab }: TermsScreenProps) {
           },
           {
             title: '6. Limitación de Responsabilidad',
-            body: 'Apex Velocity se proporciona "tal cual" sin garantías de ningún tipo. No nos hacemos responsables de pérdidas de datos, decisiones basadas en la información mostrada, o daños derivados del uso de la aplicación.',
+            body: 'NAVE se proporciona "tal cual" sin garantías de ningún tipo. No nos hacemos responsables de pérdidas de datos, decisiones basadas en la información mostrada, o daños derivados del uso de la aplicación.',
           },
           {
             title: '7. Propiedad Intelectual',
-            body: 'El código fuente, diseño y marca de Apex Velocity están protegidos. No está permitida la reproducción, distribución o modificación sin autorización previa por escrito.',
+            body: 'El código fuente, diseño y marca de NAVE están protegidos. No está permitida la reproducción, distribución o modificación sin autorización previa por escrito.',
           },
           {
             title: '8. Notificaciones',

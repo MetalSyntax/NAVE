@@ -1,11 +1,11 @@
 {
-  "name": "Apex Velocity | Vehicle Maintenance",
-  "short_name": "ApexVelocity",
+  "name": "NAVE | Control de Motos",
+  "short_name": "NAVE",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#FF3A1A",
-  "description": "App para control y telemetría vehicular.",
+  "description": "App venezolana para el control y mantenimiento de tu moto.",
   "icons": [
     {
       "src": "favicon.ico",

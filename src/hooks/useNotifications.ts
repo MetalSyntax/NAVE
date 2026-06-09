@@ -27,7 +27,7 @@ export function useNotifications() {
       new Notification(title, {
         body,
         icon: '/manifest.json',
-        tag: tag || 'apex-velocity',
+        tag: tag || 'nave',
         silent: false,
       });
     } catch { /* ignore */ }

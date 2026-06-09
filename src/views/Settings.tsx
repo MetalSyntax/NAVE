@@ -76,7 +76,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
       if (granted) {
         showToast('Notificaciones activadas', 'success');
         // Test notification
-        new Notification('Apex Velocity', {
+        new Notification('NAVE', {
           body: 'Las notificaciones de mantenimiento están activas.',
           tag: 'apex-welcome',
         });
@@ -111,7 +111,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
 
       const payload = {
         exportDate: new Date().toISOString(),
-        app: 'Apex Velocity',
+        app: 'NAVE',
         version: '1.0',
         data: {
           vehicles: sanitize(vehicles),
@@ -126,7 +126,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `apex-velocity-backup-${new Date().toISOString().split('T')[0]}.json`;
+      anchor.download = `nave-backup-${new Date().toISOString().split('T')[0]}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
       showToast('Datos exportados correctamente', 'success');
@@ -167,7 +167,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <Helmet>
-        <title>{t('common:nav_settings')} | Apex Velocity</title>
+        <title>{t('common:nav_settings')} | NAVE</title>
       </Helmet>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
