@@ -24,5 +24,7 @@
   "settings_alerts_enabled": "Alertas de servicio activadas",
   "settings_privacy": "Datos y Privacidad",
   "settings_local_store": "Almacenamiento Local (Seguro)",
-  "settings_rider": "PILOTO"
+  "settings_rider": "PILOTO",
+  "settings_storage": "Almacenamiento Usado",
+  "settings_storage_of": "de"
 }

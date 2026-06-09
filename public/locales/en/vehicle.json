@@ -26,5 +26,9 @@
   "category_placeholder": "Category",
   "status_label": "System Status",
   "label_category": "Category / Segment",
-  "label_unit_id": "Unit Alias / ID"
+  "label_unit_id": "Unit Alias / ID",
+  "label_last_service_date": "Last Service Date",
+  "label_next_service_date": "Next Service Date",
+  "service_due_alert": "Maintenance Due — Service your vehicle soon",
+  "add_new": "Add New Unit"
 }

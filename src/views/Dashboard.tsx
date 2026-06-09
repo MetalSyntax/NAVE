@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, PlusCircle, Sun, Fuel, Droplet, ChevronRight } from 'lucide-react';
+import { TrendingUp, PlusCircle, Droplet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useLogs } from '../hooks/useLogs';
@@ -20,7 +20,6 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
     let distThisWeek = 0;
     let oilRemaining = '--';
     let oilLifePercent = 100;
-    let fuelPercent = 72;
 
     if (logs && logs.length > 0) {
       const sortedOdo = [...logs].sort((a, b) => b.odo - a.odo);
@@ -28,22 +27,16 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
 
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      
-      const recentLogs = logs.filter(l => new Date(l.date) >= oneWeekAgo).sort((a,b) => b.odo - a.odo);
+
+      const recentLogs = logs.filter(l => new Date(l.date) >= oneWeekAgo).sort((a, b) => b.odo - a.odo);
       if (recentLogs.length > 0) {
-        const oldestRecent = logs.filter(l => new Date(l.date) < oneWeekAgo).sort((a,b) => b.odo - a.odo)[0];
+        const oldestRecent = logs.filter(l => new Date(l.date) < oneWeekAgo).sort((a, b) => b.odo - a.odo)[0];
         if (oldestRecent) {
           distThisWeek = totalDist - oldestRecent.odo;
         } else {
           distThisWeek = totalDist - recentLogs[recentLogs.length - 1].odo;
         }
       }
-
-      const sortedByDate = [...logs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      const lastLog = sortedByDate[0];
-      const distSinceLog = totalDist - lastLog.odo;
-      const estimatedRangeLost = (distSinceLog / 250) * 100;
-      fuelPercent = Math.max(0, 100 - estimatedRangeLost);
     }
 
     if (maintenanceLogs && settings) {
@@ -51,19 +44,19 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
       const lastServiceKm = sortedMaint.length > 0 ? sortedMaint[0].km : 0;
       const kmSinceService = totalDist - lastServiceKm;
       const remainingKm = Math.max(0, settings.oilInterval - kmSinceService);
-      
+
       oilRemaining = remainingKm.toLocaleString();
       let life = 100 - (kmSinceService / settings.oilInterval) * 100;
       oilLifePercent = Math.max(0, Math.min(100, life));
     }
 
-    return { totalDist, distThisWeek, oilRemaining, oilLifePercent, fuelPercent };
+    return { totalDist, distThisWeek, oilRemaining, oilLifePercent };
   }, [logs, maintenanceLogs, settings]);
 
   const recentActivity = useMemo(() => {
     const l = logs.map(x => ({ id: `L-${x.id}`, title: `${t('dashboard:fuel_refill')} - ${x.fuel}L`, date: new Date(x.date), type: 'log' }));
     const m = maintenanceLogs.map(x => ({ id: `M-${x.id}`, title: x.type, date: new Date(x.date), type: 'maint' }));
-    
+
     return [...l, ...m]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 3)
@@ -71,79 +64,122 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
         id: `0${index + 1}`,
         title: item.title,
         sub: `${item.type === 'maint' ? t('dashboard:maint_label') : t('dashboard:telemetry_label')} • ${item.date.toLocaleDateString()}`,
-        bg: index % 2 === 0 ? 'bg-surface-low' : 'bg-surface-high',
-        hover: index % 2 === 0 ? 'hover:bg-surface-high' : 'hover:bg-surface-container'
+        type: item.type
       }));
   }, [logs, maintenanceLogs]);
 
   if (isLoading && (!logs || logs.length === 0)) return <LoadingScreen />;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-5 animate-in fade-in duration-500">
       <Helmet>
         <title>{t('seo:home_title')}</title>
         <meta name="description" content={t('seo:home_desc')} />
       </Helmet>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <section className="md:col-span-8 bg-surface-lowest p-8 relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1 h-full bg-primary-container"></div>
-          <label className="text-secondary font-label text-[10px] font-bold tracking-[0.15rem] uppercase mb-4 block">{t('dashboard:label_total_distance')}</label>
-          <div className="flex items-baseline gap-2">
-            <span className="font-headline font-black text-7xl md:text-8xl tracking-tighter italic">{stats.totalDist.toLocaleString()}</span>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+        {/* MD3 Elevated Card — Total Distance */}
+        <section className="md:col-span-8 bg-surface-low rounded-2xl p-8 relative overflow-hidden shadow-elevation-1">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary-container rounded-l-2xl"></div>
+          <label className="text-secondary font-label text-[10px] font-bold tracking-[0.15rem] uppercase mb-4 block pl-3">
+            {t('dashboard:label_total_distance')}
+          </label>
+          <div className="flex items-baseline gap-2 pl-3">
+            <span className="font-headline font-black text-7xl md:text-8xl tracking-tighter italic">
+              {stats.totalDist.toLocaleString()}
+            </span>
             <span className="font-headline font-bold text-2xl text-surface-variant">KM</span>
           </div>
-          <div className="mt-8 flex gap-4">
-            <div className="bg-surface-high px-4 py-2 flex items-center gap-2">
+          <div className="mt-6 flex gap-3 pl-3">
+            <div className="bg-surface-container rounded-xl px-4 py-2 flex items-center gap-2">
               <TrendingUp className="text-secondary w-4 h-4" />
-              <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">+{stats.distThisWeek} {t('dashboard:this_week')}</span>
+              <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">
+                +{stats.distThisWeek} {t('dashboard:this_week')}
+              </span>
             </div>
           </div>
         </section>
 
-        <div className="md:col-span-4 flex flex-col gap-6">
-          <button 
+        {/* MD3 Tonal Button — Quick Add (compact) */}
+        <div className="md:col-span-4 flex items-start">
+          <button
             onClick={() => setActiveTab('logs')}
-            className="flex-1 bg-primary-container hover:bg-primary text-on-primary-container p-6 flex flex-col justify-between active:scale-95 transition-all duration-75"
+            className="w-full bg-primary-container hover:bg-primary text-on-primary-container rounded-2xl px-6 py-5 flex items-center gap-4 shadow-elevation-1 transition-all duration-150 group"
           >
-            <PlusCircle className="w-10 h-10" />
-            <span className="font-headline font-black text-2xl tracking-tighter text-left uppercase leading-none mt-4">{t('dashboard:quick_add')}</span>
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
+              <PlusCircle className="w-5 h-5" />
+            </div>
+            <span className="font-headline font-black text-base tracking-tight uppercase leading-tight text-left">
+              {t('dashboard:quick_add')}
+            </span>
           </button>
         </div>
 
-        <section className={`md:col-span-12 bg-surface-low p-8 border-l-4 ${stats.oilLifePercent > 20 ? 'border-primary' : 'border-error'}`}>
-          <div className="flex justify-between items-start mb-8">
+        {/* MD3 Card — Oil / Service Life */}
+        <section
+          className={`md:col-span-12 rounded-2xl p-8 shadow-elevation-1 ${
+            stats.oilLifePercent > 20 ? 'bg-surface-low' : 'bg-error-container/20'
+          }`}
+        >
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <label className={`${stats.oilLifePercent > 20 ? 'text-primary' : 'text-error'} font-label text-[10px] font-bold tracking-[0.15rem] uppercase block`}>{t('dashboard:oil_service')}</label>
-              <span className="font-headline font-black text-5xl italic tracking-tighter">{stats.oilRemaining} <span className="text-2xl text-surface-variant">KM</span></span>
+              <label className={`font-label text-[10px] font-bold tracking-[0.15rem] uppercase block mb-1 ${stats.oilLifePercent > 20 ? 'text-primary' : 'text-error'}`}>
+                {t('dashboard:oil_service')}
+              </label>
+              <span className="font-headline font-black text-5xl italic tracking-tighter">
+                {stats.oilRemaining}{' '}
+                <span className="text-2xl text-surface-variant">KM</span>
+              </span>
             </div>
-            <Droplet className={`${stats.oilLifePercent > 20 ? 'text-primary' : 'text-error'} w-10 h-10`} />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stats.oilLifePercent > 20 ? 'bg-primary/10' : 'bg-error/10'}`}>
+              <Droplet className={`${stats.oilLifePercent > 20 ? 'text-primary' : 'text-error'} w-6 h-6`} />
+            </div>
           </div>
-          <div className="relative w-full h-2 bg-surface-lowest">
-            <div className={`absolute top-0 left-0 h-full ${stats.oilLifePercent > 20 ? 'bg-primary' : 'bg-error'}`} style={{ width: `${stats.oilLifePercent}%` }}></div>
+          <div className="relative w-full h-2 bg-surface-container rounded-full overflow-hidden">
+            <div
+              className={`absolute top-0 left-0 h-full rounded-full transition-all duration-700 ${stats.oilLifePercent > 20 ? 'bg-primary' : 'bg-error'}`}
+              style={{ width: `${stats.oilLifePercent}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-2 text-[10px] text-surface-variant font-bold uppercase tracking-wide">
+            <span>0 KM</span>
+            <span>{stats.oilLifePercent.toFixed(0)}%</span>
           </div>
         </section>
 
-        <section className="md:col-span-12 mt-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-headline font-black text-2xl tracking-tighter uppercase">{t('dashboard:recent_telemetry')}</h2>
-          </div>
-          
+        {/* MD3 List — Recent Activity */}
+        <section className="md:col-span-12 mt-4">
+          <h2 className="font-headline font-black text-xl tracking-tighter uppercase mb-4 flex items-center gap-3">
+            <span className="w-6 h-[2px] bg-primary rounded-full inline-block"></span>
+            {t('dashboard:recent_telemetry')}
+          </h2>
+
           {recentActivity.length === 0 && (
-            <div className="bg-surface-low p-8 text-center border-2 border-dashed border-surface-variant/30">
-              <p className="font-headline text-lg font-bold text-surface-variant uppercase mb-2">{t('dashboard:no_activity')}</p>
+            <div className="bg-surface-low rounded-2xl p-8 text-center border border-outline-variant/30">
+              <p className="font-headline text-lg font-bold text-surface-variant uppercase">
+                {t('dashboard:no_activity')}
+              </p>
             </div>
           )}
 
-          <div className="flex flex-col gap-1">
-            {recentActivity.map((item) => (
-              <div key={item.id} className={`${item.bg} p-6 flex justify-between items-center group transition-colors`}>
-                <div className="flex items-center gap-6">
-                  <span className="text-surface-variant font-headline font-bold text-xl">{item.id}</span>
+          {/* MD3 List Items */}
+          <div className="flex flex-col gap-2">
+            {recentActivity.map((item, idx) => (
+              <div
+                key={item.id}
+                className="bg-surface-container rounded-xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
+              >
+                <div className="flex items-center gap-5">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-headline font-black ${item.type === 'maint' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
+                    {item.id}
+                  </div>
                   <div>
-                    <h3 className="font-headline font-bold text-lg uppercase">{item.title}</h3>
-                    <p className="text-[10px] text-surface-variant font-bold uppercase tracking-widest">{item.sub}</p>
+                    <h3 className="font-headline font-bold text-base uppercase">{item.title}</h3>
+                    <p className="text-[10px] text-surface-variant font-bold uppercase tracking-widest">
+                      {item.sub}
+                    </p>
                   </div>
                 </div>
               </div>

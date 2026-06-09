@@ -200,7 +200,7 @@ export const seedDefaults = async () => {
         placa: '',
         vin: 'ZDM1234567890BC',
         tipoCombustible: 'gasoline',
-        nivelGasolina: 100,
+        nivelGasolina: 5,
         rendimientoKmL: 15,
         kilometrajeActual: 12482,
         kilometrajeUltimoServicio: 12000,

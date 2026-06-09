@@ -24,5 +24,7 @@
   "settings_alerts_enabled": "Service alerts enabled",
   "settings_privacy": "Data & Privacy",
   "settings_local_store": "Local store (Secure)",
-  "settings_rider": "RIDER"
+  "settings_rider": "RIDER",
+  "settings_storage": "Storage Used",
+  "settings_storage_of": "of"
 }

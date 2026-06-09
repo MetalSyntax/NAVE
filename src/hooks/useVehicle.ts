@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAll, update, VehicleData, seedDefaults } from '../db/database';
+import { getAll, update, remove, VehicleData, seedDefaults } from '../db/database';
 import { useSettings } from './useSettings';
 
 export function useVehicle() {
@@ -13,7 +13,7 @@ export function useVehicle() {
   const fetchVehicle = useCallback(async () => {
     setIsLoading(true);
     try {
-      await seedDefaults(); // Ensure defaults exist
+      await seedDefaults();
       const data = await getAll<VehicleData>('vehicle');
       setVehicles(data);
       if (data.length > 0) {
@@ -28,9 +28,7 @@ export function useVehicle() {
     }
   }, [activeVehicleId]);
 
-  useEffect(() => {
-    fetchVehicle();
-  }, [fetchVehicle]);
+  useEffect(() => { fetchVehicle(); }, [fetchVehicle]);
 
   const updateVehicle = async (data: VehicleData) => {
     setIsLoading(true);
@@ -57,7 +55,7 @@ export function useVehicle() {
       placa: '',
       vin: '',
       tipoCombustible: 'gasoline',
-      nivelGasolina: 100,
+      nivelGasolina: 5,
       rendimientoKmL: 15,
       kilometrajeActual: 0,
       kilometrajeUltimoServicio: 0,
@@ -74,18 +72,35 @@ export function useVehicle() {
       actualizadoEn: new Date().toISOString(),
     };
     await update('vehicle', newVehicle);
-    if (updateSettings) {
-      await updateSettings({ activeVehicleId: newId });
-    }
-    await fetchVehicle();
+    await updateSettings({ activeVehicleId: newId });
+    // Directly update state without waiting for effect
+    const all = await getAll<VehicleData>('vehicle');
+    setVehicles(all);
+    setVehicle(newVehicle);
     return newId;
   };
 
   const setActiveVehicle = async (id: number) => {
-    if (updateSettings) {
-      await updateSettings({ activeVehicleId: id });
+    await updateSettings({ activeVehicleId: id });
+    // Directly update state - don't rely on effect timing
+    const data = await getAll<VehicleData>('vehicle');
+    setVehicles(data);
+    const active = data.find(v => v.id === id) || data[0];
+    if (active) setVehicle(active);
+  };
+
+  const deleteVehicle = async (id: number) => {
+    await remove('vehicle', id);
+    const remaining = vehicles.filter(v => v.id !== id);
+    setVehicles(remaining);
+    if (remaining.length > 0) {
+      const newActive = remaining[0];
+      await updateSettings({ activeVehicleId: newActive.id });
+      setVehicle(newActive);
+    } else {
+      setVehicle(null);
     }
   };
 
-  return { vehicle, vehicles, isLoading, error, updateVehicle, createNewVehicle, setActiveVehicle, refreshVehicle: fetchVehicle };
+  return { vehicle, vehicles, isLoading, error, updateVehicle, createNewVehicle, setActiveVehicle, deleteVehicle, refreshVehicle: fetchVehicle };
 }

@@ -19,21 +19,36 @@ export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-20 bg-surface/80 backdrop-blur-xl border-t border-surface-container pb-2">
+    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-stretch px-2 h-20 bg-surface-container/95 backdrop-blur-xl shadow-elevation-3 pb-2 pt-1">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         const Icon = tab.icon;
         return (
-          <button 
+          <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center justify-center pt-2 transition-all ${
-              isActive ? 'text-primary border-t-2 border-primary -mt-2' : 'text-surface-variant hover:text-secondary'
-            }`}
-            style={{ width: '20%' }}
+            className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1"
+            aria-current={isActive ? 'page' : undefined}
           >
-            <Icon className="w-6 h-6 mb-1" />
-            <span className="font-label text-[9px] font-bold tracking-[0.05rem] uppercase text-center leading-tight">
+            {/* MD3 Active Indicator pill */}
+            <div
+              className={`flex items-center justify-center transition-all duration-300 ${
+                isActive
+                  ? 'bg-secondary-container rounded-full w-16 h-8'
+                  : 'w-8 h-8'
+              }`}
+            >
+              <Icon
+                className={`w-5 h-5 transition-colors duration-200 ${
+                  isActive ? 'text-on-secondary-container' : 'text-surface-variant'
+                }`}
+              />
+            </div>
+            <span
+              className={`font-label text-[9px] font-bold tracking-[0.04rem] uppercase text-center leading-tight transition-colors duration-200 ${
+                isActive ? 'text-on-surface' : 'text-surface-variant'
+              }`}
+            >
               {tab.label}
             </span>
           </button>

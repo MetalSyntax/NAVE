@@ -11,21 +11,32 @@ import { LogsScreen } from './views/Logs';
 import { MaintenanceScreen } from './views/Maintenance';
 import { VehicleScreen } from './views/Vehicle';
 import { SettingsScreen } from './views/Settings';
+import { TermsScreen } from './views/Terms';
+import { PrivacyScreen } from './views/Privacy';
 import { useSettings } from './hooks/useSettings';
 import { LoadingScreen } from './components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { settings, isLoading } = useSettings();
+  const { i18n } = useTranslation();
 
-  // Apply theme to document
   React.useEffect(() => {
     if (settings?.theme) {
       document.documentElement.setAttribute('data-theme', settings.theme);
     }
   }, [settings?.theme]);
 
+  React.useEffect(() => {
+    if (settings?.language && i18n.language !== settings.language) {
+      i18n.changeLanguage(settings.language);
+    }
+  }, [settings?.language]);
+
   if (isLoading && !settings) return <LoadingScreen />;
+
+  const isLegalTab = activeTab === 'terms' || activeTab === 'privacy';
 
   const renderContent = () => {
     switch (activeTab) {
@@ -33,21 +44,22 @@ export default function App() {
       case 'logs': return <LogsScreen />;
       case 'maintenance': return <MaintenanceScreen />;
       case 'profile': return <VehicleScreen />;
-      case 'settings': return <SettingsScreen />;
+      case 'settings': return <SettingsScreen setActiveTab={setActiveTab} />;
+      case 'terms': return <TermsScreen setActiveTab={setActiveTab} />;
+      case 'privacy': return <PrivacyScreen setActiveTab={setActiveTab} />;
       default: return <DashboardScreen setActiveTab={setActiveTab} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-body selection:bg-primary selection:text-white pb-24">
-      <TopNav />
+    <div className="min-h-screen bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary pb-28">
+      <TopNav setActiveTab={setActiveTab} />
 
-      {/* Main Content Area */}
-      <main className="pt-24 px-4 md:px-6 max-w-5xl mx-auto">
+      <main className="pt-20 px-4 md:px-6 max-w-5xl mx-auto">
         {renderContent()}
       </main>
 
-      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      {!isLegalTab && <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />}
     </div>
   );
 }
