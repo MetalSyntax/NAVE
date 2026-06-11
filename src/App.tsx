@@ -23,12 +23,6 @@ export default function App() {
   const { i18n } = useTranslation();
 
   React.useEffect(() => {
-    if (settings?.theme) {
-      document.documentElement.setAttribute('data-theme', settings.theme);
-    }
-  }, [settings?.theme]);
-
-  React.useEffect(() => {
     if (settings?.language && i18n.language !== settings.language) {
       i18n.changeLanguage(settings.language);
     }

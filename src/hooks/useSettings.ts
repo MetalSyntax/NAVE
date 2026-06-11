@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getById, update, SettingsData, UserData, seedDefaults } from '../db/database';
 
+const applyTheme = async (theme: string) => {
+  document.documentElement.setAttribute('data-theme', theme);
+  const module = await import('../theme.json');
+  const themeConfig = module.default;
+  const activeThemeConfig = themeConfig[theme as keyof typeof themeConfig] || themeConfig.dark;
+  Object.entries(activeThemeConfig).forEach(([key, value]) => {
+    document.documentElement.style.setProperty(`--${key}`, value as string);
+  });
+};
+
 export function useSettings() {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [user, setUser] = useState<UserData | null>(null);
@@ -11,7 +21,10 @@ export function useSettings() {
     try {
       await seedDefaults(); // Ensure all stores have initial records (ID: 1)
       const dbSettings = await getById<SettingsData>('settings', 1);
-      if (dbSettings) setSettings(dbSettings);
+      if (dbSettings) {
+        setSettings(dbSettings);
+        applyTheme(dbSettings.theme);
+      }
 
       const dbUser = await getById<UserData>('user', 1);
       if (dbUser) setUser(dbUser);
@@ -33,7 +46,7 @@ export function useSettings() {
     setSettings(updated);
     
     if (newSettings.theme) {
-      document.documentElement.setAttribute('data-theme', newSettings.theme);
+      applyTheme(newSettings.theme);
     }
   };
 
