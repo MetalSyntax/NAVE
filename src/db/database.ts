@@ -105,6 +105,7 @@ export interface SettingsData {
   theme: 'light' | 'dark';
   distanceUnits: string;
   activeVehicleId?: number;
+  initialized?: boolean; // true tras la siembra inicial; evita re-crear el vehículo por defecto
 }
 
 export interface UserData {
@@ -248,63 +249,75 @@ export const clear = (storeName: string): Promise<void> => {
   });
 };
 
+// Siembra los programas de servicio del vehículo base (id 1) si aún no existen.
+const seedSchedulesForVehicle1 = async () => {
+  const existingVehicle = await getById<VehicleData>('vehicle', 1);
+  if (!existingVehicle) return;
+  const allSchedules = await getAll<ServiceSchedule>('serviceSchedules');
+  if (!allSchedules.some(s => s.vehicleId === 1)) {
+    for (const tpl of DEFAULT_SERVICE_SCHEDULES) {
+      await add('serviceSchedules', { ...tpl, vehicleId: 1 });
+    }
+  }
+};
+
 export const seedDefaults = async () => {
   try {
-    const vehicle = await getById<VehicleData>('vehicle', 1);
-    if (!vehicle) {
-      await update('vehicle', {
-        id: 1,
-        marca: 'DUCATI',
-        modelo: 'PANIGALE V4',
-        anio: 2024,
-        color: '',
-        placa: '',
-        vin: 'ZDM1234567890BC',
-        tipoCombustible: 'gasoline',
-        nivelGasolina: 5,
-        rendimientoKmL: 15,
-        kilometrajeActual: 12482,
-        kilometrajeUltimoServicio: 12000,
-        kilometrajeProximoServicio: 15000,
-        fechaUltimoServicio: new Date().toISOString(),
-        fechaProximoServicio: new Date().toISOString(),
-        aseguradora: '',
-        numeroPoliza: '',
-        vigenciaSeguro: new Date().toISOString(),
-        categoria: 'SUPERSPORT',
-        identificadorUnidad: 'UNIDAD_01',
-        creadoEn: new Date().toISOString(),
-        actualizadoEn: new Date().toISOString(),
-      });
-    }
-
     const settings = await getById<SettingsData>('settings', 1);
+
+    // Primera ejecución (sin ajustes): sembrar vehículo base, programas y usuario.
     if (!settings) {
       await update('settings', {
         id: 1,
         oilInterval: 3000,
         language: 'es',
         theme: 'dark',
-        distanceUnits: 'km'
+        distanceUnits: 'km',
+        initialized: true,
       });
-    }
 
-    // Sembrar programas de servicio para el vehículo base (id 1) si aún no existen.
-    const allSchedules = await getAll<ServiceSchedule>('serviceSchedules');
-    const hasForVehicle1 = allSchedules.some(s => s.vehicleId === 1);
-    if (!hasForVehicle1) {
-      for (const tpl of DEFAULT_SERVICE_SCHEDULES) {
-        await add('serviceSchedules', { ...tpl, vehicleId: 1 });
+      const existingVehicle = await getById<VehicleData>('vehicle', 1);
+      if (!existingVehicle) {
+        await update('vehicle', {
+          id: 1,
+          marca: 'BERA',
+          modelo: 'SBR',
+          anio: 2024,
+          color: '',
+          placa: '',
+          vin: '',
+          tipoCombustible: 'gasoline',
+          nivelGasolina: 5,
+          rendimientoKmL: 35,
+          kilometrajeActual: 8000,
+          kilometrajeUltimoServicio: 6000,
+          kilometrajeProximoServicio: 9000,
+          fechaUltimoServicio: new Date().toISOString(),
+          fechaProximoServicio: new Date().toISOString(),
+          aseguradora: '',
+          numeroPoliza: '',
+          vigenciaSeguro: new Date().toISOString(),
+          categoria: 'PASEO',
+          identificadorUnidad: 'UNIDAD_01',
+          creadoEn: new Date().toISOString(),
+          actualizadoEn: new Date().toISOString(),
+        });
       }
+
+      await seedSchedulesForVehicle1();
+
+      const existingUser = await getById<UserData>('user', 1);
+      if (!existingUser) {
+        await update('user', { id: 1, name: 'PILOTO_01', email: '' });
+      }
+      return;
     }
 
-    const user = await getById<UserData>('user', 1);
-    if (!user) {
-      await update('user', {
-        id: 1,
-        name: 'RIDER_01',
-        email: 'rider@apexvelocity.com'
-      });
+    // Usuario existente sin el flag (migración): marcar inicializado SIN recrear el
+    // vehículo, para respetar borrados. Asegurar programas del vehículo 1 si existe.
+    if (!settings.initialized) {
+      await update('settings', { ...settings, initialized: true });
+      await seedSchedulesForVehicle1();
     }
   } catch (error) {
     console.error('Error seeding defaults:', error);

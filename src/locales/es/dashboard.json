@@ -1,0 +1,23 @@
+{
+  "label_total_distance": "DISTANCIA TOTAL",
+  "this_week": "ESTA SEMANA",
+  "quick_add": "AGREGAR DATOS",
+  "oil_service": "SERVICIO DE ACEITE",
+  "recent_telemetry": "REGISTROS RECIENTES",
+  "no_activity": "SIN ACTIVIDAD",
+  "maint_label": "MANTENIMIENTO",
+  "telemetry_label": "TELEMETRÍA",
+  "fuel_refill": "RECARGA DE COMB.",
+  "alerts_title": "ALERTAS DE SERVICIO",
+  "alert_due": "VENCIDO",
+  "alert_in": "EN {{km}} KM",
+  "summary_title": "RESUMEN GENERAL",
+  "summary_vehicle": "UNIDAD ACTIVA",
+  "summary_routes": "RUTAS COMPLETADAS",
+  "summary_maintenance": "PRÓXIMO SERVICIO",
+  "summary_manuals": "MANUALES Y GUÍAS",
+  "summary_last_route": "ÚLTIMO VIAJE",
+  "summary_efficiency": "CONSUMO",
+  "summary_no_routes": "SIN VIAJES",
+  "summary_no_vehicle": "SIN MOTO"
+}

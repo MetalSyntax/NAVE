@@ -31,5 +31,17 @@
   "label_next_service_date": "Next Service Date",
   "service_due_alert": "Maintenance Due — Service your vehicle soon",
   "add_new": "Add New Unit",
-  "manuals_link": "Manuals"
+  "manuals_link": "Manuals",
+  "confirm_delete": "Delete this unit? This cannot be undone.",
+  "deleted": "Unit deleted",
+  "delete_unit": "Delete unit",
+  "empty_title": "No vehicles",
+  "empty_desc": "Add your first motorcycle to get started.",
+  "create_first": "Add motorcycle",
+  "create_title": "New Unit",
+  "create_brand": "Brand",
+  "create_model": "Model",
+  "create_select_model": "Select a model",
+  "create_blank": "Other / Custom",
+  "btn_create": "Create Unit"
 }

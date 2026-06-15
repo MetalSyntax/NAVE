@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Save, Camera, Bell, Shield, Gauge, Database, BellOff, ChevronRight, Download, Trash2, FileText } from 'lucide-react';
+import { Moon, Sun, Save, Camera, Bell, Shield, Gauge, Database, BellOff, ChevronRight, Download, Trash2, FileText, Zap, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useSettings } from '../hooks/useSettings';
@@ -200,10 +200,13 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
 
           {/* Quick Actions */}
           <div className="bg-surface-container rounded-2xl p-5 shadow-elevation-1 space-y-3">
-            <h4 className="font-label text-[10px] font-black uppercase tracking-[0.2em] text-secondary">{t('common:settings_quick_actions')}</h4>
+            <h4 className="font-label text-[10px] font-black uppercase tracking-[0.2em] text-secondary flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-primary" />
+              {t('common:settings_quick_actions')}
+            </h4>
             <button
               onClick={() => updateSettings({ theme: settings?.theme === 'dark' ? 'light' : 'dark' })}
-              className="w-full flex items-center justify-between p-3 bg-surface-low rounded-xl hover:bg-surface-high transition-colors"
+              className="w-full flex items-center justify-between p-3 bg-surface-low rounded-2xl hover:bg-surface-high transition-colors"
             >
               <div className="flex items-center gap-3">
                 {settings?.theme === 'dark'
@@ -246,9 +249,13 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
         {/* Right Column — Form */}
         <form onSubmit={handleSave} className="lg:col-span-8 space-y-5">
           <div className="bg-surface-low rounded-2xl p-7 shadow-elevation-1 space-y-6">
+            <h4 className="font-headline text-lg font-black uppercase tracking-tight flex items-center gap-3">
+              <User className="w-5 h-5 text-primary" />
+              {t('common:settings_profile')}
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className={labelCls}>{t('common:settings_profile')}</label>
+                <label className={labelCls}>{t('common:settings_name_label')}</label>
                 <input
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
@@ -300,7 +307,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             {/* Notifications */}
-            <div className="bg-surface-container rounded-xl p-5 shadow-elevation-1 flex flex-col gap-3">
+            <div className="bg-surface-container rounded-2xl p-5 shadow-elevation-1 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <notifStatus.icon className={`w-4 h-4 ${notifStatus.color}`} />
@@ -322,7 +329,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
                   type="button"
                   onClick={handleRequestNotifications}
                   disabled={requestingNotif}
-                  className="mt-auto flex items-center justify-center gap-2 bg-primary-container text-on-primary-container py-2 px-4 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-primary transition-colors disabled:opacity-50"
+                  className="mt-auto flex items-center justify-center gap-2 bg-primary-container text-on-primary-container py-2 px-4 rounded-2xl text-[10px] font-bold uppercase tracking-wider hover:bg-primary transition-colors disabled:opacity-50"
                 >
                   {requestingNotif ? <Spinner className="w-3 h-3" /> : <Bell className="w-3 h-3" />}
                   Activar
@@ -331,7 +338,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
             </div>
 
             {/* Datos y Privacidad */}
-            <div className="bg-surface-container rounded-xl p-5 shadow-elevation-1 flex flex-col gap-0">
+            <div className="bg-surface-container rounded-2xl p-5 shadow-elevation-1 flex flex-col gap-0">
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="w-4 h-4 text-secondary" />
                 <h5 className="font-headline font-bold text-sm uppercase">Datos y Privacidad</h5>
@@ -372,7 +379,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
                 <button
                   type="button"
                   onClick={handleExportData}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-low rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-primary-container hover:text-on-primary-container transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-low rounded-2xl text-[10px] font-bold uppercase tracking-wider hover:bg-primary-container hover:text-on-primary-container transition-colors"
                 >
                   <Download className="w-3 h-3" />
                   Exportar
@@ -380,7 +387,7 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
                 <button
                   type="button"
                   onClick={handleDeleteAll}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-low rounded-lg text-[10px] font-bold uppercase tracking-wider text-error hover:bg-error-container hover:text-on-error-container transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-low rounded-2xl text-[10px] font-bold uppercase tracking-wider text-error hover:bg-error-container hover:text-on-error-container transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                   Borrar todo

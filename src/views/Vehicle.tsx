@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen } from 'lucide-react';
+import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen, ChevronDown, X, Bike } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useVehicle } from '../hooks/useVehicle';
+import { VENEZUELA_MOTORCYCLES } from '../data/venezuelaMotorcycles';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen, Spinner } from '../components/ui/Spinner';
 import { toArrayBuffer, arrayBufferToUrl } from '../utils/fileUtils';
@@ -41,6 +42,19 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  // Secciones plegables
+  const [openSections, setOpenSections] = useState({ identity: true, fuel: false, insurance: false });
+  const toggleSection = (key: keyof typeof openSections) =>
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+
+  // Selector de nueva unidad (marcas/modelos VE)
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createBrand, setCreateBrand] = useState('');
+  const [createModel, setCreateModel] = useState('');
+  const [createYear, setCreateYear] = useState(String(new Date().getFullYear()));
+
+  const selectedBrand = VENEZUELA_MOTORCYCLES.find(b => b.brand === createBrand);
 
   useEffect(() => {
     if (vehicle) {
@@ -142,11 +156,28 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
     }
   };
 
-  const handleNewVehicle = async () => {
+  const openCreateModal = () => {
+    setCreateBrand('');
+    setCreateModel('');
+    setCreateYear(String(new Date().getFullYear()));
+    setShowCreateModal(true);
+  };
+
+  const handleCreateConfirm = async () => {
     setIsCreating(true);
     try {
-      await createNewVehicle();
+      const isBlank = !createBrand || createBrand === t('vehicle:create_blank');
+      const overrides = isBlank
+        ? undefined
+        : {
+            marca: createBrand,
+            modelo: createModel || selectedBrand?.models[0] || '',
+            anio: parseInt(createYear) || new Date().getFullYear(),
+            categoria: selectedBrand?.category || 'PASEO',
+          };
+      await createNewVehicle(overrides);
       showToast(t('vehicle:add_new'), 'success');
+      setShowCreateModal(false);
     } catch {
       showToast(t('common:error_generic'), 'error');
     } finally {
@@ -155,14 +186,10 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
   };
 
   const handleDelete = async (id: number) => {
-    if (vehicles.length <= 1) {
-      showToast('No puedes eliminar el único vehículo', 'error');
-      return;
-    }
-    if (confirm('¿Eliminar este vehículo? Esta acción no se puede deshacer.')) {
+    if (confirm(t('vehicle:confirm_delete'))) {
       try {
         await deleteVehicle(id);
-        showToast('Vehículo eliminado', 'success');
+        showToast(t('vehicle:deleted'), 'success');
       } catch {
         showToast(t('common:error_generic'), 'error');
       }
@@ -171,13 +198,100 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
 
   if (isVehicleLoading && !vehicle) return <LoadingScreen />;
 
+  const inputCls = "w-full bg-surface-high border-0 border-b-2 border-outline-variant focus:border-primary focus:outline-none px-4 py-3 text-on-surface uppercase font-bold transition-colors";
+  const labelCls = "font-label text-[10px] font-extrabold text-secondary tracking-[0.15em] uppercase block mb-1";
+
+  // Modal selector de nueva unidad (marcas/modelos de Venezuela)
+  const createModalEl = showCreateModal ? (
+    <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4 bg-scrim animate-in fade-in duration-200">
+      <div className="bg-surface-low rounded-2xl w-full max-w-lg p-7 space-y-5 shadow-elevation-3">
+        <div className="flex justify-between items-center">
+          <h3 className="font-headline text-xl font-black uppercase text-primary flex items-center gap-2">
+            <Bike className="w-5 h-5" />
+            {t('vehicle:create_title')}
+          </h3>
+          <button type="button" onClick={() => setShowCreateModal(false)} className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-high transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-1">
+          <label className={labelCls}>{t('vehicle:create_brand')}</label>
+          <select
+            value={createBrand}
+            onChange={e => { setCreateBrand(e.target.value); setCreateModel(''); }}
+            className={inputCls}
+          >
+            <option value="">{t('vehicle:create_brand')}…</option>
+            {VENEZUELA_MOTORCYCLES.map(b => (
+              <option key={b.brand} value={b.brand}>{b.brand}</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedBrand && selectedBrand.models.length > 0 && (
+          <div className="space-y-1">
+            <label className={labelCls}>{t('vehicle:create_model')}</label>
+            <select value={createModel} onChange={e => setCreateModel(e.target.value)} className={inputCls}>
+              <option value="">{t('vehicle:create_select_model')}</option>
+              {selectedBrand.models.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="space-y-1 max-w-[10rem]">
+          <label className={labelCls}>{t('vehicle:year')}</label>
+          <input value={createYear} onChange={e => setCreateYear(e.target.value)} type="number" min="1900" max="2100" className={inputCls} />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCreateConfirm}
+          disabled={isCreating}
+          className="w-full bg-primary text-on-primary py-4 font-headline font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-3 rounded-full shadow-elevation-1 disabled:opacity-50"
+        >
+          {isCreating ? <Spinner className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {t('vehicle:btn_create')}
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  // Estado vacío: sin vehículos
+  if (!vehicle) {
+    return (
+      <div className="animate-in fade-in duration-500">
+        <Helmet>
+          <title>{t('seo:profile_title')}</title>
+          <meta name="description" content={t('seo:profile_desc')} />
+        </Helmet>
+        {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+        <div className="bg-surface-low rounded-2xl p-10 flex flex-col items-center justify-center text-center shadow-elevation-1 mt-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <Bike className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="font-headline text-2xl font-black uppercase tracking-tight">{t('vehicle:empty_title')}</h2>
+          <p className="font-body text-surface-variant mt-1 mb-6">{t('vehicle:empty_desc')}</p>
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="flex items-center gap-2 bg-primary text-on-primary px-8 py-4 font-headline font-black uppercase tracking-widest hover:bg-primary/90 transition-all rounded-full shadow-elevation-1"
+          >
+            <Plus className="w-5 h-5" />
+            {t('vehicle:create_first')}
+          </button>
+        </div>
+        {createModalEl}
+      </div>
+    );
+  }
+
   const isDueForService =
     parseInt(formData.kilometrajeActual) >= parseInt(formData.kilometrajeProximoServicio) * 0.95;
 
   const fuelLevel = parseInt(formData.nivelGasolina) || 1;
-
-  const inputCls = "w-full bg-surface-high border-0 border-b-2 border-outline-variant focus:border-primary focus:outline-none px-4 py-3 text-on-surface uppercase font-bold transition-colors";
-  const labelCls = "font-label text-[10px] font-extrabold text-secondary tracking-[0.15em] uppercase block mb-1";
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -218,11 +332,10 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
               )}
               <button
                 type="button"
-                onClick={handleNewVehicle}
-                disabled={isCreating}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-primary transition-colors disabled:opacity-50"
+                onClick={openCreateModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-primary transition-colors"
               >
-                {isCreating ? <Spinner className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                <Plus className="w-3 h-3" />
                 {t('vehicle:add_new')}
               </button>
             </div>
@@ -245,7 +358,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
                     {v.identificadorUnidad || `UNIDAD_${String(v.id).slice(-4)}`}
                     <span className="opacity-60">({v.marca})</span>
                   </button>
-                  {!isActive && (
+                  {vehicles.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleDelete(v.id!)}
@@ -302,11 +415,19 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
 
         {/* Section: Identity */}
         <section className="bg-surface-low rounded-2xl p-7 shadow-elevation-1">
-          <h3 className="font-headline text-lg font-black mb-7 tracking-tight text-on-surface uppercase flex items-center gap-3">
-            <span className="w-5 h-[2px] bg-primary rounded-full" />
-            {t('vehicle:section_identity')}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+          <button
+            type="button"
+            onClick={() => toggleSection('identity')}
+            className="w-full flex items-center justify-between gap-3 mb-1"
+          >
+            <h3 className="font-headline text-lg font-black tracking-tight text-on-surface uppercase flex items-center gap-3">
+              <span className="w-5 h-[2px] bg-primary rounded-full" />
+              {t('vehicle:section_identity')}
+            </h3>
+            <ChevronDown className={`w-5 h-5 text-surface-variant transition-transform duration-300 ${openSections.identity ? 'rotate-180' : ''}`} />
+          </button>
+          {openSections.identity && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6 mt-6">
             {[
               { name: 'marca', label: t('vehicle:manufacturer') },
               { name: 'modelo', label: t('vehicle:model') },
@@ -322,15 +443,24 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
               </div>
             ))}
           </div>
+          )}
         </section>
 
         {/* Section: Engine & Telemetry */}
         <section className="bg-surface-low rounded-2xl p-7 shadow-elevation-1">
-          <h3 className="font-headline text-lg font-black mb-7 tracking-tight text-on-surface uppercase flex items-center gap-3">
-            <span className="w-5 h-[2px] bg-secondary rounded-full" />
-            {t('vehicle:section_fuel')}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+          <button
+            type="button"
+            onClick={() => toggleSection('fuel')}
+            className="w-full flex items-center justify-between gap-3 mb-1"
+          >
+            <h3 className="font-headline text-lg font-black tracking-tight text-on-surface uppercase flex items-center gap-3">
+              <span className="w-5 h-[2px] bg-secondary rounded-full" />
+              {t('vehicle:section_fuel')}
+            </h3>
+            <ChevronDown className={`w-5 h-5 text-surface-variant transition-transform duration-300 ${openSections.fuel ? 'rotate-180' : ''}`} />
+          </button>
+          {openSections.fuel && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6 mt-6">
 
             {/* Fuel Type */}
             <div className="space-y-1">
@@ -390,15 +520,24 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
               <input name="fechaProximoServicio" value={formData.fechaProximoServicio || ''} onChange={handleChange} type="date" className={inputCls} />
             </div>
           </div>
+          )}
         </section>
 
         {/* Section: Insurance */}
         <section className="bg-surface-low rounded-2xl p-7 shadow-elevation-1">
-          <h3 className="font-headline text-lg font-black mb-7 tracking-tight text-on-surface uppercase flex items-center gap-3">
-            <span className="w-5 h-[2px] bg-tertiary rounded-full" />
-            {t('vehicle:section_insurance')}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+          <button
+            type="button"
+            onClick={() => toggleSection('insurance')}
+            className="w-full flex items-center justify-between gap-3 mb-1"
+          >
+            <h3 className="font-headline text-lg font-black tracking-tight text-on-surface uppercase flex items-center gap-3">
+              <span className="w-5 h-[2px] bg-tertiary rounded-full" />
+              {t('vehicle:section_insurance')}
+            </h3>
+            <ChevronDown className={`w-5 h-5 text-surface-variant transition-transform duration-300 ${openSections.insurance ? 'rotate-180' : ''}`} />
+          </button>
+          {openSections.insurance && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6 mt-6">
             {[
               { name: 'aseguradora', label: t('vehicle:insurance_company') },
               { name: 'numeroPoliza', label: t('vehicle:policy_number') },
@@ -413,6 +552,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
               <input name="vigenciaSeguro" value={formData.vigenciaSeguro || ''} onChange={handleChange} type="date" className={inputCls} />
             </div>
           </div>
+          )}
         </section>
 
         {/* Save Button */}
@@ -427,6 +567,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
           </button>
         </div>
       </form>
+      {createModalEl}
     </div>
   );
 }

@@ -17,6 +17,7 @@
   "empty_state": "No data available",
   "settings_desc": "User Preferences & System Configuration",
   "settings_profile": "User Identity",
+  "settings_name_label": "Display Name",
   "settings_name_placeholder": "Display Name",
   "settings_email_placeholder": "email@example.com",
   "settings_quick_actions": "Quick Actions",

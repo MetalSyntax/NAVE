@@ -44,19 +44,18 @@ export function useVehicle() {
     }
   };
 
-  const createNewVehicle = async () => {
+  const createNewVehicle = async (overrides?: Partial<VehicleData>) => {
     const newId = Date.now();
     const newVehicle: VehicleData = {
-      id: newId,
-      marca: 'NEW',
-      modelo: 'VEHICLE',
+      marca: 'NUEVA',
+      modelo: 'UNIDAD',
       anio: new Date().getFullYear(),
       color: '',
       placa: '',
       vin: '',
       tipoCombustible: 'gasoline',
       nivelGasolina: 5,
-      rendimientoKmL: 15,
+      rendimientoKmL: 35,
       kilometrajeActual: 0,
       kilometrajeUltimoServicio: 0,
       kilometrajeProximoServicio: 3000,
@@ -65,11 +64,13 @@ export function useVehicle() {
       aseguradora: '',
       numeroPoliza: '',
       vigenciaSeguro: new Date().toISOString(),
-      categoria: 'NEW',
+      categoria: 'PASEO',
       identificadorUnidad: 'UNIDAD_' + newId.toString().slice(-4),
-      estadoSistema: 'OPTIMAL',
+      estadoSistema: 'OPTIMO',
       creadoEn: new Date().toISOString(),
       actualizadoEn: new Date().toISOString(),
+      ...overrides,
+      id: newId,
     };
     await update('vehicle', newVehicle);
     await updateSettings({ activeVehicleId: newId });

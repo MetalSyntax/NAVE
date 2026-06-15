@@ -6,7 +6,7 @@
   "service_type": "Tipo de Servicio",
   "service_oil": "Aceite",
   "service_brakes": "Frenos",
-  "service_tires": "Llantas",
+  "service_tires": "Cauchos",
   "service_check": "Revisión",
   "service_other": "Otro",
   "mileage_at_service": "Kilometraje al Servicio",
@@ -42,7 +42,7 @@
   "schedule_confirm_mark": "¿Marcar como realizado en el kilometraje actual?",
   "svc_aceite": "Cambio de Aceite",
   "svc_relacion": "Relación (cadena/piñones)",
-  "svc_llantas": "Llantas",
+  "svc_llantas": "Cauchos",
   "svc_frenos": "Frenos",
   "svc_baston": "Bastón / Suspensión"
 }

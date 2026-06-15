@@ -1,5 +1,5 @@
 {
-  "nav_dashboard": "Panel Config",
+  "nav_dashboard": "Principal",
   "nav_logs": "Bitácoras",
   "nav_routes": "Rutas",
   "nav_maintenance": "Servicios",
@@ -17,6 +17,7 @@
   "empty_state": "No hay datos disponibles",
   "settings_desc": "Preferencias de Usuario y Configuración",
   "settings_profile": "Identidad del Usuario",
+  "settings_name_label": "Nombre para Mostrar",
   "settings_name_placeholder": "Nombre para mostrar",
   "settings_email_placeholder": "correo@ejemplo.com",
   "settings_quick_actions": "Acciones Rápidas",

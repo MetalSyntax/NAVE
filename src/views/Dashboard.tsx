@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import { TrendingUp, PlusCircle, Droplet, BellRing } from 'lucide-react';
+import { TrendingUp, PlusCircle, Droplet, BellRing, Bike, Route, Wrench, BookOpen, Fuel, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useLogs } from '../hooks/useLogs';
@@ -7,6 +7,8 @@ import { useMaintenance } from '../hooks/useMaintenance';
 import { useServiceSchedules } from '../hooks/useServiceSchedules';
 import { useNotifications } from '../hooks/useNotifications';
 import { useVehicle } from '../hooks/useVehicle';
+import { useRoutes } from '../hooks/useRoutes';
+import { useManuals } from '../hooks/useManuals';
 import { computeServiceAlerts } from '../utils/serviceAlerts';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen } from '../components/ui/Spinner';
@@ -17,6 +19,8 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
   const { maintenanceLogs, settings, isLoading: maintLoading } = useMaintenance();
   const { schedules } = useServiceSchedules();
   const { vehicle } = useVehicle();
+  const { routes } = useRoutes();
+  const { manuals } = useManuals();
   const { sendNotification } = useNotifications();
   const { toast, showToast, hideToast } = useToast();
   const notifiedRef = useRef(false);
@@ -91,6 +95,14 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
       : t('dashboard:alert_in', { km: top.remaining.toLocaleString() });
     sendNotification(t('dashboard:alerts_title'), `${svcLabel(top.schedule.type)} — ${detail}`, 'service-alerts');
   }, [activeAlerts]);
+
+  const lastEff = useMemo(() => {
+    if (!logs || logs.length === 0) return 0;
+    return [...logs].sort((a, b) => b.odo - a.odo)[0].eff || 0;
+  }, [logs]);
+  const completedRoutes = useMemo(() => routes.filter(r => r.status === 'completed'), [routes]);
+  const lastRoute = completedRoutes[0];
+  const nextService = activeAlerts[0]?.nextKm ?? (vehicle?.kilometrajeProximoServicio || 0);
 
   if (isLoading && (!logs || logs.length === 0)) return <LoadingScreen />;
 
@@ -200,6 +212,68 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
           </div>
         </section>
 
+        {/* MD3 — General Summary (data from every view) */}
+        <section className="md:col-span-12 mt-4">
+          <h2 className="font-headline font-black text-xl tracking-tighter uppercase mb-4 flex items-center gap-3">
+            <span className="w-6 h-[2px] bg-secondary rounded-full inline-block"></span>
+            {t('dashboard:summary_title')}
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Vehículo */}
+            <button onClick={() => setActiveTab('profile')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+              <div className="flex items-center justify-between mb-3">
+                <Bike className="w-5 h-5 text-primary" />
+                <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
+              </div>
+              <p className="font-label text-[9px] font-bold tracking-widest uppercase text-surface-variant mb-1">{t('dashboard:summary_vehicle')}</p>
+              <p className="font-headline font-black text-base uppercase tracking-tight truncate">
+                {vehicle ? `${vehicle.marca} ${vehicle.modelo}` : t('dashboard:summary_no_vehicle')}
+              </p>
+              {vehicle && (
+                <p className="text-[10px] text-surface-variant font-bold uppercase tracking-wider mt-1">
+                  {vehicle.nivelGasolina}/5 · {vehicle.rendimientoKmL} KM/L
+                </p>
+              )}
+            </button>
+
+            {/* Rutas */}
+            <button onClick={() => setActiveTab('routes')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+              <div className="flex items-center justify-between mb-3">
+                <Route className="w-5 h-5 text-secondary" />
+                <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
+              </div>
+              <p className="font-label text-[9px] font-bold tracking-widest uppercase text-surface-variant mb-1">{t('dashboard:summary_routes')}</p>
+              <p className="font-headline font-black text-2xl tracking-tighter">{completedRoutes.length}</p>
+              <p className="text-[10px] text-surface-variant font-bold uppercase tracking-wider mt-1">
+                {lastRoute ? `${t('dashboard:summary_last_route')}: ${(lastRoute.distance || 0).toLocaleString()} KM` : t('dashboard:summary_no_routes')}
+              </p>
+            </button>
+
+            {/* Próximo servicio */}
+            <button onClick={() => setActiveTab('maintenance')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+              <div className="flex items-center justify-between mb-3">
+                <Wrench className="w-5 h-5 text-primary" />
+                <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
+              </div>
+              <p className="font-label text-[9px] font-bold tracking-widest uppercase text-surface-variant mb-1">{t('dashboard:summary_maintenance')}</p>
+              <p className="font-headline font-black text-2xl tracking-tighter">{nextService.toLocaleString()}<span className="text-sm text-surface-variant"> KM</span></p>
+              <p className="text-[10px] text-surface-variant font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
+                <Fuel className="w-3 h-3" /> {t('dashboard:summary_efficiency')}: {lastEff > 0 ? `${lastEff.toFixed(1)} L/100` : '--'}
+              </p>
+            </button>
+
+            {/* Manuales */}
+            <button onClick={() => setActiveTab('manuals')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+              <div className="flex items-center justify-between mb-3">
+                <BookOpen className="w-5 h-5 text-secondary" />
+                <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
+              </div>
+              <p className="font-label text-[9px] font-bold tracking-widest uppercase text-surface-variant mb-1">{t('dashboard:summary_manuals')}</p>
+              <p className="font-headline font-black text-2xl tracking-tighter">{manuals.length}</p>
+            </button>
+          </div>
+        </section>
+
         {/* MD3 List — Recent Activity */}
         <section className="md:col-span-12 mt-4">
           <h2 className="font-headline font-black text-xl tracking-tighter uppercase mb-4 flex items-center gap-3">
@@ -220,7 +294,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
             {recentActivity.map((item, idx) => (
               <div
                 key={item.id}
-                className="bg-surface-container rounded-xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
+                className="bg-surface-container rounded-2xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
               >
                 <div className="flex items-center gap-5">
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-headline font-black ${item.type === 'maint' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>

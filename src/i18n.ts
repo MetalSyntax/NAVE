@@ -24,23 +24,23 @@ i18n
 // Since we are not using HTTP backend (to prevent async loading issues in simple setups), we'll import them directly or use fetch. 
 // For better Vite compatibility without an http backend plugin, let's just bundle the translations directly.
 
-import common_es from '../public/locales/es/common.json';
-import vehicle_es from '../public/locales/es/vehicle.json';
-import maintenance_es from '../public/locales/es/maintenance.json';
-import seo_es from '../public/locales/es/seo.json';
+import common_es from './locales/es/common.json';
+import vehicle_es from './locales/es/vehicle.json';
+import maintenance_es from './locales/es/maintenance.json';
+import seo_es from './locales/es/seo.json';
 
-import common_en from '../public/locales/en/common.json';
-import vehicle_en from '../public/locales/en/vehicle.json';
-import maintenance_en from '../public/locales/en/maintenance.json';
-import seo_en from '../public/locales/en/seo.json';
-import logs_es from '../public/locales/es/logs.json';
-import logs_en from '../public/locales/en/logs.json';
-import dashboard_es from '../public/locales/es/dashboard.json';
-import dashboard_en from '../public/locales/en/dashboard.json';
-import routes_es from '../public/locales/es/routes.json';
-import routes_en from '../public/locales/en/routes.json';
-import manuals_es from '../public/locales/es/manuals.json';
-import manuals_en from '../public/locales/en/manuals.json';
+import common_en from './locales/en/common.json';
+import vehicle_en from './locales/en/vehicle.json';
+import maintenance_en from './locales/en/maintenance.json';
+import seo_en from './locales/en/seo.json';
+import logs_es from './locales/es/logs.json';
+import logs_en from './locales/en/logs.json';
+import dashboard_es from './locales/es/dashboard.json';
+import dashboard_en from './locales/en/dashboard.json';
+import routes_es from './locales/es/routes.json';
+import routes_en from './locales/en/routes.json';
+import manuals_es from './locales/es/manuals.json';
+import manuals_en from './locales/en/manuals.json';
 
 i18n.addResourceBundle('es', 'common', common_es);
 i18n.addResourceBundle('es', 'vehicle', vehicle_es);

@@ -10,5 +10,14 @@
   "fuel_refill": "FUEL REFILL",
   "alerts_title": "SERVICE ALERTS",
   "alert_due": "OVERDUE",
-  "alert_in": "IN {{km}} KM"
+  "alert_in": "IN {{km}} KM",
+  "summary_title": "OVERVIEW",
+  "summary_vehicle": "ACTIVE VEHICLE",
+  "summary_routes": "ROUTES",
+  "summary_maintenance": "NEXT SERVICE",
+  "summary_manuals": "MANUALS",
+  "summary_last_route": "LAST",
+  "summary_efficiency": "LAST CONSUMPTION",
+  "summary_no_routes": "NO ROUTES",
+  "summary_no_vehicle": "NO UNIT"
 }

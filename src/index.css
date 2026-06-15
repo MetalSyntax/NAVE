@@ -85,7 +85,7 @@
   --shadow-elevation-3: var(--elevation-3);
 }
 
-body {
+html, body {
   background-color: var(--surface);
   color: var(--on-surface);
   font-family: var(--font-body);
