@@ -3,8 +3,12 @@
   "home_desc": "Real-time tracking of your vehicle's health and telemetry.",
   "logs_title": "Logs | Maintenance App",
   "logs_desc": "Add telemetry logs and track fuel efficiency.",
+  "routes_title": "Routes | Maintenance App",
+  "routes_desc": "Track your rides and estimate fuel consumption per route.",
   "maintenance_title": "Maintenance | Maintenance App",
   "maintenance_desc": "Keep a detailed history of your mechanical services and costs.",
   "profile_title": "Profile | Maintenance App",
-  "profile_desc": "Manage details, insurance, and photos of your vehicle."
+  "profile_desc": "Manage details, insurance, and photos of your vehicle.",
+  "manuals_title": "Manuals | Maintenance App",
+  "manuals_desc": "Store and read your motorcycle manuals offline."
 }

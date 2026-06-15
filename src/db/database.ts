@@ -1,5 +1,5 @@
 export const DB_NAME = 'appDatabase';
-export const DB_VERSION = 3; // Incremented to trigger schema creation for settings and user stores
+export const DB_VERSION = 6; // v6: adds 'manuals' store (biblioteca de manuales PDF)
 
 export interface LogEntry {
   id?: number;
@@ -24,6 +24,51 @@ export interface MaintenanceEntry {
   workshop?: string;
   proofPhoto?: ArrayBuffer;
 }
+
+export interface RouteEntry {
+  id?: number;
+  vehicleId?: number;
+  name?: string;
+  status: 'active' | 'completed';
+  startDate: string;
+  endDate?: string;
+  odoStart: number;
+  odoEnd?: number;
+  distance?: number;       // km recorridos (odoEnd - odoStart)
+  fuelUsed?: number;       // litros estimados (distance / rendimientoKmL)
+  rendimientoKmL?: number; // snapshot del rendimiento al finalizar
+  notes?: string;
+  track?: [number, number][]; // recorrido GPS opcional [lng, lat]
+}
+
+export interface ManualEntry {
+  id?: number;
+  vehicleId?: number;
+  title: string;
+  fileName: string;
+  mimeType: string;   // p.ej. application/pdf
+  size: number;       // bytes
+  data: ArrayBuffer;  // contenido del archivo
+  addedAt: string;
+}
+
+export interface ServiceSchedule {
+  id?: number;
+  vehicleId?: number;
+  type: string;          // clave i18n: 'aceite'|'relacion'|'llantas'|'frenos'|'baston' o etiqueta libre
+  intervalKm: number;    // cada cuántos km toca el servicio
+  lastServiceKm: number; // km del último cambio
+  enabled: boolean;
+}
+
+// Plantilla base de programas de servicio preventivo (km típicos de moto).
+export const DEFAULT_SERVICE_SCHEDULES: Omit<ServiceSchedule, 'id' | 'vehicleId'>[] = [
+  { type: 'aceite', intervalKm: 3000, lastServiceKm: 0, enabled: true },
+  { type: 'relacion', intervalKm: 8000, lastServiceKm: 0, enabled: true },
+  { type: 'llantas', intervalKm: 10000, lastServiceKm: 0, enabled: true },
+  { type: 'frenos', intervalKm: 12000, lastServiceKm: 0, enabled: true },
+  { type: 'baston', intervalKm: 15000, lastServiceKm: 0, enabled: true },
+];
 
 export interface VehicleData {
   id?: number; // Should always be 1
@@ -85,6 +130,22 @@ export const initDB = (): Promise<IDBDatabase> => {
       if (!db.objectStoreNames.contains('maintenance')) {
         const maintStore = db.createObjectStore('maintenance', { keyPath: 'id', autoIncrement: true });
         maintStore.createIndex('date', 'date', { unique: false });
+      }
+
+      if (!db.objectStoreNames.contains('routes')) {
+        const routesStore = db.createObjectStore('routes', { keyPath: 'id', autoIncrement: true });
+        routesStore.createIndex('status', 'status', { unique: false });
+        routesStore.createIndex('startDate', 'startDate', { unique: false });
+      }
+
+      if (!db.objectStoreNames.contains('manuals')) {
+        const manualsStore = db.createObjectStore('manuals', { keyPath: 'id', autoIncrement: true });
+        manualsStore.createIndex('vehicleId', 'vehicleId', { unique: false });
+      }
+
+      if (!db.objectStoreNames.contains('serviceSchedules')) {
+        const schedStore = db.createObjectStore('serviceSchedules', { keyPath: 'id', autoIncrement: true });
+        schedStore.createIndex('vehicleId', 'vehicleId', { unique: false });
       }
 
       if (db.objectStoreNames.contains('profile')) {
@@ -226,6 +287,15 @@ export const seedDefaults = async () => {
         theme: 'dark',
         distanceUnits: 'km'
       });
+    }
+
+    // Sembrar programas de servicio para el vehículo base (id 1) si aún no existen.
+    const allSchedules = await getAll<ServiceSchedule>('serviceSchedules');
+    const hasForVehicle1 = allSchedules.some(s => s.vehicleId === 1);
+    if (!hasForVehicle1) {
+      for (const tpl of DEFAULT_SERVICE_SCHEDULES) {
+        await add('serviceSchedules', { ...tpl, vehicleId: 1 });
+      }
     }
 
     const user = await getById<UserData>('user', 1);

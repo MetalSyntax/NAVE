@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gauge, ScrollText, Droplet, User, Settings } from 'lucide-react';
+import { Gauge, ScrollText, Route, Droplet, User, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BottomNavProps {
@@ -13,6 +13,7 @@ export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   const tabs = [
     { id: 'dashboard', icon: Gauge, label: t('nav_dashboard') },
     { id: 'logs', icon: ScrollText, label: t('nav_logs') },
+    { id: 'routes', icon: Route, label: t('nav_routes') },
     { id: 'maintenance', icon: Droplet, label: t('nav_maintenance') },
     { id: 'profile', icon: User, label: t('nav_profile') },
     { id: 'settings', icon: Settings, label: t('nav_settings') },

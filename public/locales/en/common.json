@@ -1,6 +1,7 @@
 {
   "nav_dashboard": "Dashboard",
   "nav_logs": "Logs",
+  "nav_routes": "Routes",
   "nav_maintenance": "Maintenance",
   "nav_profile": "Vehicle",
   "nav_settings": "Settings",

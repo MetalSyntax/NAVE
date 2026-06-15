@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2 } from 'lucide-react';
+import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useVehicle } from '../hooks/useVehicle';
@@ -32,7 +32,7 @@ const FUEL_LABELS: Record<number, string> = {
   5: 'Lleno',
 };
 
-export function VehicleScreen() {
+export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
   const { t } = useTranslation(['vehicle', 'seo', 'common']);
   const { vehicle, vehicles, isLoading: isVehicleLoading, updateVehicle, createNewVehicle, setActiveVehicle, deleteVehicle } = useVehicle();
   const { toast, showToast, hideToast } = useToast();
@@ -205,15 +205,27 @@ export function VehicleScreen() {
             <span className="font-label text-[10px] font-black uppercase tracking-widest text-secondary">
               {t('vehicle:section_identity')} — {vehicles.length} {vehicles.length === 1 ? 'unidad' : 'unidades'}
             </span>
-            <button
-              type="button"
-              onClick={handleNewVehicle}
-              disabled={isCreating}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-primary transition-colors disabled:opacity-50"
-            >
-              {isCreating ? <Spinner className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-              {t('vehicle:add_new')}
-            </button>
+            <div className="flex items-center gap-2">
+              {setActiveTab && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('manuals')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-high text-on-surface rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-surface-low transition-colors"
+                >
+                  <BookOpen className="w-3 h-3" />
+                  {t('vehicle:manuals_link')}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleNewVehicle}
+                disabled={isCreating}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-primary transition-colors disabled:opacity-50"
+              >
+                {isCreating ? <Spinner className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                {t('vehicle:add_new')}
+              </button>
+            </div>
           </div>
           <div className="flex gap-2 flex-wrap">
             {vehicles.map(v => {

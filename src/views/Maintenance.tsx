@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { SlidersHorizontal, CalendarClock, PenTool, ImagePlus, Edit3, Trash2, X, Save } from 'lucide-react';
+import { SlidersHorizontal, CalendarClock, PenTool, ImagePlus, Edit3, Trash2, X, Save, BellRing, CheckCircle2, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useMaintenance } from '../hooks/useMaintenance';
 import { useLogs } from '../hooks/useLogs';
+import { useServiceSchedules } from '../hooks/useServiceSchedules';
+import { computeServiceAlerts } from '../utils/serviceAlerts';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen, Spinner } from '../components/ui/Spinner';
 import { arrayBufferToUrl, toArrayBuffer } from '../utils/fileUtils';
@@ -12,7 +14,12 @@ export function MaintenanceScreen() {
   const { t } = useTranslation(['maintenance', 'seo', 'common']);
   const { maintenanceLogs, settings, isLoading: maintLoading, addMaintenance, updateMaintenance, removeMaintenance } = useMaintenance();
   const { logs, isLoading: logsLoading } = useLogs();
+  const { schedules, updateSchedule, removeSchedule, addSchedule, markServiced } = useServiceSchedules();
   const { toast, showToast, hideToast } = useToast();
+
+  const [showSchedForm, setShowSchedForm] = useState(false);
+  const [newSchedType, setNewSchedType] = useState('');
+  const [newSchedInterval, setNewSchedInterval] = useState('');
 
   const [editingMaint, setEditingMaint] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,6 +126,43 @@ export function MaintenanceScreen() {
     }
   };
 
+  const alerts = useMemo(() => computeServiceAlerts(schedules, currentOdo), [schedules, currentOdo]);
+
+  const svcLabel = (type: string) => t(`maintenance:svc_${type}`, { defaultValue: type });
+
+  const handleAddSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const interval = parseInt(newSchedInterval, 10);
+    if (!newSchedType.trim() || isNaN(interval) || interval <= 0) { showToast(t('common:error_generic'), 'error'); return; }
+    try {
+      await addSchedule({ type: newSchedType.trim(), intervalKm: interval, lastServiceKm: currentOdo, enabled: true });
+      showToast(t('common:saved_success'), 'success');
+      setNewSchedType(''); setNewSchedInterval(''); setShowSchedForm(false);
+    } catch {
+      showToast(t('common:error_generic'), 'error');
+    }
+  };
+
+  const handleMarkServiced = async (alertSchedule: typeof schedules[number]) => {
+    if (!confirm(t('maintenance:schedule_confirm_mark'))) return;
+    try {
+      await markServiced(alertSchedule, currentOdo);
+      showToast(t('common:saved_success'), 'success');
+    } catch {
+      showToast(t('common:error_generic'), 'error');
+    }
+  };
+
+  const handleDeleteSchedule = async (id: number) => {
+    if (!confirm(t('maintenance:schedule_confirm_delete'))) return;
+    try {
+      await removeSchedule(id);
+      showToast(t('common:saved_success'), 'success');
+    } catch {
+      showToast(t('common:error_generic'), 'error');
+    }
+  };
+
   if (isLoading && maintenanceLogs.length === 0) return <LoadingScreen />;
 
   const inputCls = "w-full bg-surface-high border-0 border-b-2 border-outline-variant focus:border-primary focus:outline-none px-4 py-3 text-on-surface uppercase font-bold transition-colors";
@@ -185,6 +229,101 @@ export function MaintenanceScreen() {
           <div className="font-headline text-xl text-secondary font-medium">
             {stats.nextServiceKm.toLocaleString()} KM
           </div>
+        </div>
+      </div>
+
+      {/* MD3 Card — Service Schedules / Predictive Alerts */}
+      <div className="bg-surface-container rounded-2xl p-6 mb-6 shadow-elevation-1">
+        <div className="flex justify-between items-center w-full mb-1">
+          <div>
+            <h4 className="font-headline text-xl font-bold uppercase tracking-tight flex items-center gap-2">
+              <BellRing className="w-5 h-5 text-primary" />
+              {t('maintenance:schedules_title')}
+            </h4>
+            <p className="font-label text-[10px] text-tertiary uppercase tracking-widest mt-0.5">
+              {t('maintenance:schedules_subtitle')}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowSchedForm(!showSchedForm)}
+            className={`px-5 py-2 font-headline text-xs uppercase tracking-widest rounded-full transition-all ${
+              showSchedForm ? 'bg-surface-high text-on-surface hover:bg-surface-low' : 'bg-primary-container text-on-primary-container hover:bg-primary'
+            }`}
+          >
+            {showSchedForm ? t('common:btn_cancel') : t('maintenance:schedule_add')}
+          </button>
+        </div>
+
+        {showSchedForm && (
+          <form onSubmit={handleAddSchedule} className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-5 mt-4 border-t border-outline-variant/30">
+            <div className="md:col-span-7 space-y-1">
+              <label className={labelCls}>{t('maintenance:schedule_custom_ph')}</label>
+              <input value={newSchedType} onChange={e => setNewSchedType(e.target.value)} type="text" className={inputCls} placeholder={t('maintenance:schedule_custom_ph')} />
+            </div>
+            <div className="md:col-span-3 space-y-1">
+              <label className={labelCls}>{t('maintenance:schedule_interval')}</label>
+              <input value={newSchedInterval} onChange={e => setNewSchedInterval(e.target.value)} type="number" className={inputCls} />
+            </div>
+            <div className="md:col-span-2 flex items-end">
+              <button type="submit" className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-on-primary font-headline font-black uppercase tracking-widest text-xs hover:bg-primary/90 transition-all rounded-full shadow-elevation-1">
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="space-y-2 mt-4">
+          {alerts.length === 0 && (
+            <p className="font-headline text-sm font-bold text-surface-variant uppercase py-4 text-center">
+              {t('maintenance:schedule_none')}
+            </p>
+          )}
+          {alerts.map(({ schedule, nextKm, remaining, level }) => {
+            const chip = level === 'due'
+              ? { cls: 'bg-error-container/30 text-error', text: t('maintenance:schedule_overdue') }
+              : level === 'soon'
+                ? { cls: 'bg-secondary/20 text-secondary', text: t('maintenance:schedule_soon') }
+                : { cls: 'bg-primary/10 text-primary', text: t('maintenance:schedule_ok') };
+            return (
+              <div key={schedule.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl bg-surface-low">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`px-2.5 py-1 rounded-full font-label text-[9px] font-extrabold uppercase tracking-widest flex-shrink-0 ${chip.cls}`}>
+                    {chip.text}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="font-headline font-bold uppercase text-on-surface truncate">{svcLabel(schedule.type)}</div>
+                    <div className="text-[10px] text-tertiary uppercase tracking-widest">
+                      {t('maintenance:schedule_next')}: {nextKm.toLocaleString()} KM • {t('maintenance:schedule_remaining')}: {remaining.toLocaleString()} KM
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex flex-col">
+                    <label className="font-label text-[9px] text-tertiary uppercase tracking-widest">{t('maintenance:schedule_interval')}</label>
+                    <input
+                      type="number"
+                      value={schedule.intervalKm}
+                      onChange={e => updateSchedule({ ...schedule, intervalKm: parseInt(e.target.value, 10) || 0 })}
+                      className="w-24 bg-surface-high border-0 border-b-2 border-outline-variant focus:border-primary focus:outline-none px-2 py-1 font-headline text-sm font-bold transition-colors"
+                    />
+                  </div>
+                  <button
+                    onClick={() => handleMarkServiced(schedule)}
+                    title={t('maintenance:schedule_mark')}
+                    className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-primary hover:bg-surface-high transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteSchedule(schedule.id!)}
+                    className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

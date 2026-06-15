@@ -8,8 +8,10 @@ import { TopNav } from './components/layout/TopNav';
 import { BottomNav } from './components/layout/BottomNav';
 import { DashboardScreen } from './views/Dashboard';
 import { LogsScreen } from './views/Logs';
+import { RoutesScreen } from './views/Routes';
 import { MaintenanceScreen } from './views/Maintenance';
 import { VehicleScreen } from './views/Vehicle';
+import { ManualsScreen } from './views/Manuals';
 import { SettingsScreen } from './views/Settings';
 import { TermsScreen } from './views/Terms';
 import { PrivacyScreen } from './views/Privacy';
@@ -36,8 +38,10 @@ export default function App() {
     switch (activeTab) {
       case 'dashboard': return <DashboardScreen setActiveTab={setActiveTab} />;
       case 'logs': return <LogsScreen />;
+      case 'routes': return <RoutesScreen />;
       case 'maintenance': return <MaintenanceScreen />;
-      case 'profile': return <VehicleScreen />;
+      case 'profile': return <VehicleScreen setActiveTab={setActiveTab} />;
+      case 'manuals': return <ManualsScreen setActiveTab={setActiveTab} />;
       case 'settings': return <SettingsScreen setActiveTab={setActiveTab} />;
       case 'terms': return <TermsScreen setActiveTab={setActiveTab} />;
       case 'privacy': return <PrivacyScreen setActiveTab={setActiveTab} />;

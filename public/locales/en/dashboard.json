@@ -7,5 +7,8 @@
   "no_activity": "NO ACTIVITY",
   "maint_label": "MAINTENANCE",
   "telemetry_label": "TELEMETRY",
-  "fuel_refill": "FUEL REFILL"
+  "fuel_refill": "FUEL REFILL",
+  "alerts_title": "SERVICE ALERTS",
+  "alert_due": "OVERDUE",
+  "alert_in": "IN {{km}} KM"
 }

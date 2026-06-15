@@ -30,5 +30,6 @@
   "label_last_service_date": "Fecha Último Servicio",
   "label_next_service_date": "Fecha Próximo Servicio",
   "service_due_alert": "Mantenimiento Próximo — Revisa tu vehículo",
-  "add_new": "Añadir Nueva Unidad"
+  "add_new": "Añadir Nueva Unidad",
+  "manuals_link": "Manuales"
 }

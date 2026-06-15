@@ -7,5 +7,8 @@
   "no_activity": "SIN ACTIVIDAD",
   "maint_label": "MANTENIMIENTO",
   "telemetry_label": "TELEMETRÍA",
-  "fuel_refill": "RECARGA COMB."
+  "fuel_refill": "RECARGA COMB.",
+  "alerts_title": "ALERTAS DE SERVICIO",
+  "alert_due": "VENCIDO",
+  "alert_in": "EN {{km}} KM"
 }

@@ -1,0 +1,13 @@
+{
+  "title": "Manuals",
+  "upload_title": "Upload Manual",
+  "title_label": "Title (optional)",
+  "title_ph": "E.g. DR650 owner's manual",
+  "btn_upload": "Choose File",
+  "storage_hint": "Stored locally on your device (PDF or image).",
+  "library": "Library",
+  "empty": "No manuals saved yet",
+  "btn_view": "View",
+  "btn_download": "Download",
+  "confirm_delete": "Delete this manual?"
+}

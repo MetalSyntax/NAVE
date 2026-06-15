@@ -1,17 +1,25 @@
-import React, { useMemo } from 'react';
-import { TrendingUp, PlusCircle, Droplet } from 'lucide-react';
+import React, { useMemo, useEffect, useRef } from 'react';
+import { TrendingUp, PlusCircle, Droplet, BellRing } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useLogs } from '../hooks/useLogs';
 import { useMaintenance } from '../hooks/useMaintenance';
+import { useServiceSchedules } from '../hooks/useServiceSchedules';
+import { useNotifications } from '../hooks/useNotifications';
+import { useVehicle } from '../hooks/useVehicle';
+import { computeServiceAlerts } from '../utils/serviceAlerts';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen } from '../components/ui/Spinner';
 
 export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
-  const { t } = useTranslation(['seo', 'common', 'vehicle', 'dashboard']);
+  const { t } = useTranslation(['seo', 'common', 'vehicle', 'dashboard', 'maintenance']);
   const { logs, isLoading: logsLoading } = useLogs();
   const { maintenanceLogs, settings, isLoading: maintLoading } = useMaintenance();
+  const { schedules } = useServiceSchedules();
+  const { vehicle } = useVehicle();
+  const { sendNotification } = useNotifications();
   const { toast, showToast, hideToast } = useToast();
+  const notifiedRef = useRef(false);
 
   const isLoading = logsLoading || maintLoading;
 
@@ -68,6 +76,22 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
       }));
   }, [logs, maintenanceLogs]);
 
+  const currentOdo = Math.max(stats.totalDist, vehicle?.kilometrajeActual || 0);
+  const alerts = useMemo(() => computeServiceAlerts(schedules, currentOdo), [schedules, currentOdo]);
+  const activeAlerts = useMemo(() => alerts.filter(a => a.level !== 'ok'), [alerts]);
+  const svcLabel = (type: string) => t(`maintenance:svc_${type}`, { defaultValue: type });
+
+  // Notificación única por sesión cuando hay servicios vencidos/próximos.
+  useEffect(() => {
+    if (notifiedRef.current || activeAlerts.length === 0) return;
+    notifiedRef.current = true;
+    const top = activeAlerts[0];
+    const detail = top.level === 'due'
+      ? t('dashboard:alert_due')
+      : t('dashboard:alert_in', { km: top.remaining.toLocaleString() });
+    sendNotification(t('dashboard:alerts_title'), `${svcLabel(top.schedule.type)} — ${detail}`, 'service-alerts');
+  }, [activeAlerts]);
+
   if (isLoading && (!logs || logs.length === 0)) return <LoadingScreen />;
 
   return (
@@ -79,6 +103,33 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+        {/* MD3 Card — Service Alerts banner */}
+        {activeAlerts.length > 0 && (
+          <button
+            onClick={() => setActiveTab('maintenance')}
+            className="md:col-span-12 text-left bg-error-container/20 rounded-2xl p-5 flex items-center gap-4 shadow-elevation-1 hover:bg-error-container/30 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-error/10 flex items-center justify-center flex-shrink-0">
+              <BellRing className="w-5 h-5 text-error" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-label text-[10px] font-bold tracking-[0.15rem] uppercase text-error mb-1">
+                {t('dashboard:alerts_title')}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {activeAlerts.slice(0, 3).map(a => (
+                  <span key={a.schedule.id} className="font-headline text-xs font-bold uppercase text-on-surface">
+                    {svcLabel(a.schedule.type)} ·{' '}
+                    <span className={a.level === 'due' ? 'text-error' : 'text-secondary'}>
+                      {a.level === 'due' ? t('dashboard:alert_due') : t('dashboard:alert_in', { km: a.remaining.toLocaleString() })}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </button>
+        )}
 
         {/* MD3 Elevated Card — Total Distance */}
         <section className="md:col-span-8 bg-surface-low rounded-2xl p-8 relative overflow-hidden shadow-elevation-1">

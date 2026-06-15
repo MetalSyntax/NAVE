@@ -1,0 +1,13 @@
+{
+  "title": "Manuales",
+  "upload_title": "Subir Manual",
+  "title_label": "Título (opcional)",
+  "title_ph": "Ej. Manual de usuario DR650",
+  "btn_upload": "Elegir Archivo",
+  "storage_hint": "Se guarda localmente en tu dispositivo (PDF o imagen).",
+  "library": "Biblioteca",
+  "empty": "No hay manuales guardados",
+  "btn_view": "Ver",
+  "btn_download": "Descargar",
+  "confirm_delete": "¿Eliminar este manual?"
+}

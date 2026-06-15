@@ -3,8 +3,12 @@
   "home_desc": "Monitorea la salud de tu vehículo en tiempo real.",
   "logs_title": "Bitácoras | Mantenimiento Vehicular",
   "logs_desc": "Agrega logs de telemetría y controla el nivel de gasolina.",
+  "routes_title": "Rutas | Mantenimiento Vehicular",
+  "routes_desc": "Registra tus viajes y estima el consumo de combustible por ruta.",
   "maintenance_title": "Servicios | Mantenimiento Vehicular",
   "maintenance_desc": "Lleva un historial detallado de costos y servicios mecánicos.",
   "profile_title": "Perfil | Mantenimiento Vehicular",
-  "profile_desc": "Gestiona los detalles, seguro y fotos de tu vehículo."
+  "profile_desc": "Gestiona los detalles, seguro y fotos de tu vehículo.",
+  "manuals_title": "Manuales | Mantenimiento Vehicular",
+  "manuals_desc": "Guarda y consulta los manuales de tu moto sin conexión."
 }
