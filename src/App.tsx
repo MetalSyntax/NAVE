@@ -46,7 +46,7 @@ export default function App() {
     switch (activeTab) {
       case 'dashboard': return <DashboardScreen setActiveTab={setActiveTab} />;
       case 'logs': return <LogsScreen />;
-      case 'routes': return <RoutesScreen />;
+      case 'routes': return <LogsScreen initialTab="routes" />;
       case 'maintenance': return <MaintenanceScreen />;
       case 'profile': return <VehicleScreen setActiveTab={setActiveTab} />;
       case 'manuals': return <ManualsScreen setActiveTab={setActiveTab} />;

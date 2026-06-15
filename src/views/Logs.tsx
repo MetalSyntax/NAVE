@@ -21,14 +21,18 @@ function formatElapsed(fromIso: string, now: number): string {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 }
 
-export function LogsScreen() {
+export function LogsScreen({ initialTab = 'refills' }: { initialTab?: 'refills' | 'routes' } = {}) {
   const { t } = useTranslation(['seo', 'common', 'logs', 'routes']);
   const { logs, isLoading: logsLoading, addLog, updateLog, removeLog } = useLogs();
   const { routes, activeRoute, isLoading: routesLoading, startRoute, finishRoute, removeRoute } = useRoutes();
   const { vehicle, updateVehicle } = useVehicle();
   const { toast, showToast, hideToast } = useToast();
 
-  const [subTab, setSubTab] = useState<'refills' | 'routes'>('refills');
+  const [subTab, setSubTab] = useState<'refills' | 'routes'>(initialTab);
+
+  useEffect(() => {
+    setSubTab(initialTab);
+  }, [initialTab]);
 
   // Fuel Logs States
   const [editingLog, setEditingLog] = useState<any>(null);
