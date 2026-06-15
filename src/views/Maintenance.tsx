@@ -24,12 +24,15 @@ export function MaintenanceScreen() {
 
   const [editingMaint, setEditingMaint] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formType, setFormType] = useState('Aceite');
+  const [formType, setFormType] = useState('');
+  const [customFormType, setCustomFormType] = useState('');
   const [formCost, setFormCost] = useState('');
   const [formWorkshop, setFormWorkshop] = useState('');
   const [formNotes, setFormNotes] = useState('');
   const [formPhoto, setFormPhoto] = useState<ArrayBuffer | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [formKm, setFormKm] = useState('');
 
   // Custom integrated confirm modal states
   const [deleteMaintId, setDeleteMaintId] = useState<number | null>(null);
@@ -83,22 +86,49 @@ export function MaintenanceScreen() {
 
   const handleSubmitService = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentOdo === 0) { showToast(t('common:error_generic'), 'error'); return; }
+    const serviceKm = parseInt(formKm, 10);
+    if (isNaN(serviceKm) || serviceKm < 0) {
+      showToast(t('common:error_generic'), 'error');
+      return;
+    }
     setIsSubmitting(true);
     try {
+      let finalType = formType;
+      let selectedSched: any = null;
+      if (formType.startsWith('sched:')) {
+        const schedId = parseInt(formType.split(':')[1], 10);
+        selectedSched = schedules.find(s => s.id === schedId);
+        if (selectedSched) {
+          finalType = svcLabel(selectedSched.type);
+        }
+      } else if (formType === 'Otro / Other') {
+        finalType = customFormType || t('maintenance:service_other');
+      }
+
       await addMaintenance({
-        type: formType,
-        date: new Date().toISOString(),
-        km: currentOdo,
+        type: finalType,
+        date: new Date(formDate + 'T12:00:00').toISOString(),
+        km: serviceKm,
         notes: formNotes,
         cost: parseFloat(formCost) || 0,
         workshop: formWorkshop,
         fuelAtService: currentFuel,
         proofPhoto: formPhoto || undefined
       });
+
+      if (selectedSched) {
+        await markServiced(selectedSched, serviceKm);
+      }
+
       showToast(t('common:saved_success'), 'success');
       setShowForm(false);
-      setFormCost(''); setFormWorkshop(''); setFormNotes(''); setFormPhoto(null);
+      setFormCost('');
+      setFormWorkshop('');
+      setFormNotes('');
+      setFormPhoto(null);
+      setCustomFormType('');
+      setFormDate(new Date().toISOString().split('T')[0]);
+      setFormKm(String(currentOdo || ''));
     } catch {
       showToast(t('common:error_generic'), 'error');
     } finally {
@@ -137,6 +167,20 @@ export function MaintenanceScreen() {
   const alerts = useMemo(() => computeServiceAlerts(schedules, currentOdo), [schedules, currentOdo]);
 
   const svcLabel = (type: string) => t(`maintenance:svc_${type}`, { defaultValue: type });
+
+  React.useEffect(() => {
+    if (schedules.length > 0 && !formType) {
+      setFormType(`sched:${schedules[0].id}`);
+    } else if (schedules.length === 0 && !formType) {
+      setFormType('Aceite / Oil');
+    }
+  }, [schedules, formType]);
+
+  React.useEffect(() => {
+    if (currentOdo > 0 && !formKm) {
+      setFormKm(String(currentOdo));
+    }
+  }, [currentOdo, formKm]);
 
   const handleAddSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,6 +413,11 @@ export function MaintenanceScreen() {
             <div className="space-y-1">
               <label className={labelCls}>{t('maintenance:service_type')}</label>
               <select value={formType} onChange={(e) => setFormType(e.target.value)} className={inputCls}>
+                {schedules.map(s => (
+                  <option key={s.id} value={`sched:${s.id}`}>
+                    {svcLabel(s.type)} ({s.intervalKm.toLocaleString()} KM)
+                  </option>
+                ))}
                 <option value="Aceite / Oil">{t('maintenance:service_oil')}</option>
                 <option value="Frenos / Brakes">{t('maintenance:service_brakes')}</option>
                 <option value="Llantas / Tires">{t('maintenance:service_tires')}</option>
@@ -376,15 +425,35 @@ export function MaintenanceScreen() {
                 <option value="Otro / Other">{t('maintenance:service_other')}</option>
               </select>
             </div>
+
+            {formType === 'Otro / Other' && (
+              <div className="space-y-1 animate-in slide-in-from-top-2 duration-200">
+                <label className={labelCls}>{t('maintenance:schedule_custom_ph') || 'Nombre de Servicio'}</label>
+                <input value={customFormType} onChange={(e) => setCustomFormType(e.target.value)} type="text" className={inputCls} required />
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className={labelCls}>{t('maintenance:date') || 'Fecha'}</label>
+              <input value={formDate} onChange={(e) => setFormDate(e.target.value)} type="date" className={inputCls} required />
+            </div>
+
+            <div className="space-y-1">
+              <label className={labelCls}>{t('maintenance:mileage_at_service') || 'Kilometraje'}</label>
+              <input value={formKm} onChange={(e) => setFormKm(e.target.value)} type="number" className={inputCls} required />
+            </div>
+
             <div className="space-y-1">
               <label className={labelCls}>{t('maintenance:cost')}</label>
               <input value={formCost} onChange={(e) => setFormCost(e.target.value)} type="number" step="0.01" className={inputCls} />
             </div>
+            
             <div className="space-y-1">
               <label className={labelCls}>{t('maintenance:workshop')}</label>
               <input value={formWorkshop} onChange={(e) => setFormWorkshop(e.target.value)} type="text" className={inputCls} />
             </div>
-            <div className="space-y-1">
+            
+            <div className="space-y-1 md:col-span-2">
               <label className={labelCls}>{t('maintenance:notes_description')}</label>
               <input value={formNotes} onChange={(e) => setFormNotes(e.target.value)} type="text" className={inputCls} />
             </div>
@@ -396,7 +465,7 @@ export function MaintenanceScreen() {
                 {formPhoto ? t('maintenance:photo_loaded') : t('maintenance:proof_photo')}
               </label>
               <button
-                disabled={isSubmitting || currentOdo === 0}
+                disabled={isSubmitting}
                 type="submit"
                 className="flex-1 flex items-center justify-center gap-3 px-8 py-3 bg-primary text-on-primary font-headline font-black uppercase tracking-widest text-sm hover:bg-primary/90 transition-all disabled:opacity-50 rounded-full shadow-elevation-1"
               >
