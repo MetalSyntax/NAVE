@@ -8,21 +8,24 @@ import { TopNav } from './components/layout/TopNav';
 import { BottomNav } from './components/layout/BottomNav';
 import { DashboardScreen } from './views/Dashboard';
 import { LogsScreen } from './views/Logs';
-import { RoutesScreen } from './views/Routes';
 import { MaintenanceScreen } from './views/Maintenance';
+import { OnboardingScreen } from './views/Onboarding';
 import { VehicleScreen } from './views/Vehicle';
 import { ManualsScreen } from './views/Manuals';
 import { SettingsScreen } from './views/Settings';
 import { TermsScreen } from './views/Terms';
 import { PrivacyScreen } from './views/Privacy';
 import { useSettings } from './hooks/useSettings';
+import { usePwaUpdate } from './hooks/usePwaUpdate';
+import { UpdatePrompt } from './components/ui/UpdatePrompt';
 import { LoadingScreen } from './components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { settings, isLoading } = useSettings();
+  const { settings, isLoading, refresh } = useSettings();
   const { i18n } = useTranslation();
+  const { needsUpdate, isChecking, justChecked, acceptUpdate, dismissUpdate, checkForUpdate } = usePwaUpdate();
 
   React.useEffect(() => {
     if (settings?.language && i18n.language !== settings.language) {
@@ -31,6 +34,11 @@ export default function App() {
   }, [settings?.language]);
 
   if (isLoading && !settings) return <LoadingScreen />;
+
+  // Mostrar onboarding en la primera ejecución hasta que se complete.
+  if (settings && !settings.onboardingComplete) {
+    return <OnboardingScreen onComplete={refresh} />;
+  }
 
   const isLegalTab = activeTab === 'terms' || activeTab === 'privacy';
 
@@ -42,7 +50,7 @@ export default function App() {
       case 'maintenance': return <MaintenanceScreen />;
       case 'profile': return <VehicleScreen setActiveTab={setActiveTab} />;
       case 'manuals': return <ManualsScreen setActiveTab={setActiveTab} />;
-      case 'settings': return <SettingsScreen setActiveTab={setActiveTab} />;
+      case 'settings': return <SettingsScreen setActiveTab={setActiveTab} onCheckUpdate={checkForUpdate} isCheckingUpdate={isChecking} justChecked={justChecked} />;
       case 'terms': return <TermsScreen setActiveTab={setActiveTab} />;
       case 'privacy': return <PrivacyScreen setActiveTab={setActiveTab} />;
       default: return <DashboardScreen setActiveTab={setActiveTab} />;
@@ -58,6 +66,7 @@ export default function App() {
       </main>
 
       {!isLegalTab && <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />}
+      {needsUpdate && <UpdatePrompt onAccept={acceptUpdate} onDismiss={dismissUpdate} />}
     </div>
   );
 }

@@ -124,7 +124,6 @@ textarea {
 /* MD3 Button defaults */
 button {
   cursor: pointer;
-  border-radius: var(--shape-full);
   transition: opacity 0.15s ease, transform 0.1s ease, background-color 0.15s ease;
 }
 

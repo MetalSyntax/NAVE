@@ -120,7 +120,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
         {activeAlerts.length > 0 && (
           <button
             onClick={() => setActiveTab('maintenance')}
-            className="md:col-span-12 text-left bg-error-container/20 rounded-2xl p-5 flex items-center gap-4 shadow-elevation-1 hover:bg-error-container/30 transition-colors"
+            className="md:col-span-12 text-left bg-error-container/20 rounded-xl p-5 flex items-center gap-4 shadow-elevation-1 hover:bg-error-container/30 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-error/10 flex items-center justify-center flex-shrink-0">
               <BellRing className="w-5 h-5 text-error" />
@@ -144,8 +144,8 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
         )}
 
         {/* MD3 Elevated Card — Total Distance */}
-        <section className="md:col-span-8 bg-surface-low rounded-2xl p-8 relative overflow-hidden shadow-elevation-1">
-          <div className="absolute top-0 left-0 w-1 h-full bg-primary-container rounded-l-2xl"></div>
+        <section className="md:col-span-8 bg-surface-low rounded-xl p-8 relative overflow-hidden shadow-elevation-1">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary-container rounded-l-xl"></div>
           <label className="text-secondary font-label text-[10px] font-bold tracking-[0.15rem] uppercase mb-4 block pl-3">
             {t('dashboard:label_total_distance')}
           </label>
@@ -169,7 +169,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
         <div className="md:col-span-4 flex items-start">
           <button
             onClick={() => setActiveTab('logs')}
-            className="w-full bg-primary-container hover:bg-primary text-on-primary-container rounded-2xl px-6 py-5 flex items-center gap-4 shadow-elevation-1 transition-all duration-150 group"
+            className="w-full bg-primary-container hover:bg-primary text-on-primary-container rounded-xl px-6 py-5 flex items-center gap-4 shadow-elevation-1 transition-all duration-150 group"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
               <PlusCircle className="w-5 h-5" />
@@ -182,7 +182,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
 
         {/* MD3 Card — Oil / Service Life */}
         <section
-          className={`md:col-span-12 rounded-2xl p-8 shadow-elevation-1 ${
+          className={`md:col-span-12 rounded-xl p-8 shadow-elevation-1 ${
             stats.oilLifePercent > 20 ? 'bg-surface-low' : 'bg-error-container/20'
           }`}
         >
@@ -220,7 +220,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* Vehículo */}
-            <button onClick={() => setActiveTab('profile')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+            <button onClick={() => setActiveTab('profile')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <Bike className="w-5 h-5 text-primary" />
                 <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
@@ -237,7 +237,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
             </button>
 
             {/* Rutas */}
-            <button onClick={() => setActiveTab('routes')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+            <button onClick={() => setActiveTab('routes')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <Route className="w-5 h-5 text-secondary" />
                 <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
@@ -250,7 +250,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
             </button>
 
             {/* Próximo servicio */}
-            <button onClick={() => setActiveTab('maintenance')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+            <button onClick={() => setActiveTab('maintenance')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <Wrench className="w-5 h-5 text-primary" />
                 <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
@@ -263,7 +263,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
             </button>
 
             {/* Manuales */}
-            <button onClick={() => setActiveTab('manuals')} className="text-left bg-surface-container rounded-2xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+            <button onClick={() => setActiveTab('manuals')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <BookOpen className="w-5 h-5 text-secondary" />
                 <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
@@ -282,7 +282,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
           </h2>
 
           {recentActivity.length === 0 && (
-            <div className="bg-surface-low rounded-2xl p-8 text-center border border-outline-variant/30">
+            <div className="bg-surface-low rounded-xl p-8 text-center border border-outline-variant/30">
               <p className="font-headline text-lg font-bold text-surface-variant uppercase">
                 {t('dashboard:no_activity')}
               </p>
@@ -294,7 +294,7 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
             {recentActivity.map((item, idx) => (
               <div
                 key={item.id}
-                className="bg-surface-container rounded-2xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
+                className="bg-surface-container rounded-xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
               >
                 <div className="flex items-center gap-5">
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-headline font-black ${item.type === 'maint' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>

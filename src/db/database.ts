@@ -105,7 +105,8 @@ export interface SettingsData {
   theme: 'light' | 'dark';
   distanceUnits: string;
   activeVehicleId?: number;
-  initialized?: boolean; // true tras la siembra inicial; evita re-crear el vehículo por defecto
+  initialized?: boolean;      // true tras la siembra inicial
+  onboardingComplete?: boolean; // true cuando el usuario completó el onboarding
 }
 
 export interface UserData {
@@ -265,7 +266,8 @@ export const seedDefaults = async () => {
   try {
     const settings = await getById<SettingsData>('settings', 1);
 
-    // Primera ejecución (sin ajustes): sembrar vehículo base, programas y usuario.
+    // Primera ejecución absoluta: crear ajustes base y usuario; NO sembrar vehículo.
+    // El onboarding se encargará de crear la moto.
     if (!settings) {
       await update('settings', {
         id: 1,
@@ -273,49 +275,25 @@ export const seedDefaults = async () => {
         language: 'es',
         theme: 'dark',
         distanceUnits: 'km',
-        initialized: true,
+        initialized: false,
+        onboardingComplete: false,
       });
-
-      const existingVehicle = await getById<VehicleData>('vehicle', 1);
-      if (!existingVehicle) {
-        await update('vehicle', {
-          id: 1,
-          marca: 'BERA',
-          modelo: 'SBR',
-          anio: 2024,
-          color: '',
-          placa: '',
-          vin: '',
-          tipoCombustible: 'gasoline',
-          nivelGasolina: 5,
-          rendimientoKmL: 35,
-          kilometrajeActual: 8000,
-          kilometrajeUltimoServicio: 6000,
-          kilometrajeProximoServicio: 9000,
-          fechaUltimoServicio: new Date().toISOString(),
-          fechaProximoServicio: new Date().toISOString(),
-          aseguradora: '',
-          numeroPoliza: '',
-          vigenciaSeguro: new Date().toISOString(),
-          categoria: 'PASEO',
-          identificadorUnidad: 'UNIDAD_01',
-          creadoEn: new Date().toISOString(),
-          actualizadoEn: new Date().toISOString(),
-        });
-      }
-
-      await seedSchedulesForVehicle1();
-
       const existingUser = await getById<UserData>('user', 1);
       if (!existingUser) {
-        await update('user', { id: 1, name: 'PILOTO_01', email: '' });
+        await update('user', { id: 1, name: 'PILOTO', email: '' });
       }
       return;
     }
 
-    // Usuario existente sin el flag (migración): marcar inicializado SIN recrear el
-    // vehículo, para respetar borrados. Asegurar programas del vehículo 1 si existe.
-    if (!settings.initialized) {
+    // Migración: usuario existente antes del onboarding → marcar completado.
+    if (settings.initialized && settings.onboardingComplete === undefined) {
+      await update('settings', { ...settings, onboardingComplete: true });
+      await seedSchedulesForVehicle1();
+      return;
+    }
+
+    // Usuario existente sin el flag initialized (esquema antiguo).
+    if (!settings.initialized && settings.onboardingComplete) {
       await update('settings', { ...settings, initialized: true });
       await seedSchedulesForVehicle1();
     }

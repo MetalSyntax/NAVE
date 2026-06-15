@@ -11,7 +11,7 @@ export default defineConfig(({mode}) => {
       react(), 
       tailwindcss(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         includeAssets: ['favicon.png', 'logo192.png', 'logo512.png'],
         manifest: {
           name: "NAVE | Control de Motos",
@@ -51,8 +51,9 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
+      watch: {
+        usePolling: true,
+      },
       hmr: process.env.DISABLE_HMR !== 'true',
     },
   };

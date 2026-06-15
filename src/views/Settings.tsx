@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Save, Camera, Bell, Shield, Gauge, Database, BellOff, ChevronRight, Download, Trash2, FileText, Zap, User } from 'lucide-react';
+import { Moon, Sun, Save, Camera, Bell, Shield, Gauge, Database, BellOff, ChevronRight, Download, Trash2, FileText, Zap, User, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useSettings } from '../hooks/useSettings';
@@ -11,9 +11,12 @@ import { getAll, clear } from '../db/database';
 
 interface SettingsScreenProps {
   setActiveTab: (tab: string) => void;
+  onCheckUpdate?: () => Promise<void>;
+  isCheckingUpdate?: boolean;
+  justChecked?: boolean;
 }
 
-export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
+export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, justChecked }: SettingsScreenProps) {
   const { t } = useTranslation(['common', 'maintenance', 'seo']);
   const { settings, user, isLoading, updateSettings, updateUser } = useSettings();
   const { permission, isSupported, requestPermission } = useNotifications();
@@ -220,6 +223,27 @@ export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
                 <div className={`w-4 h-4 bg-on-primary rounded-full transition-transform duration-200 shadow-elevation-1 ${settings?.theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`} />
               </div>
             </button>
+
+            {onCheckUpdate && (
+              <button
+                type="button"
+                onClick={onCheckUpdate}
+                disabled={isCheckingUpdate}
+                className="w-full flex items-center justify-between p-3 bg-surface-low rounded-2xl hover:bg-surface-high transition-colors disabled:opacity-60"
+              >
+                <div className="flex items-center gap-3">
+                  {justChecked
+                    ? <CheckCircle2 className="w-4 h-4 text-primary" />
+                    : <RefreshCw className={`w-4 h-4 text-secondary ${isCheckingUpdate ? 'animate-spin' : ''}`} />}
+                  <span className="font-headline text-sm font-bold uppercase">
+                    {isCheckingUpdate ? 'Verificando…' : justChecked ? 'App al día' : 'Buscar actualizaciones'}
+                  </span>
+                </div>
+                {!isCheckingUpdate && !justChecked && (
+                  <ChevronRight className="w-4 h-4 text-surface-variant" />
+                )}
+              </button>
+            )}
           </div>
 
           {/* Storage Indicator */}

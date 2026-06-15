@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen, ChevronDown, X, Bike } from 'lucide-react';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { useVehicle } from '../hooks/useVehicle';
@@ -7,6 +8,7 @@ import { VENEZUELA_MOTORCYCLES } from '../data/venezuelaMotorcycles';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen, Spinner } from '../components/ui/Spinner';
 import { toArrayBuffer, arrayBufferToUrl } from '../utils/fileUtils';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 // Normaliza nivelGasolina a escala 1-5
 const normalizeLevel = (val: number): number => {
@@ -53,6 +55,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
   const [createBrand, setCreateBrand] = useState('');
   const [createModel, setCreateModel] = useState('');
   const [createYear, setCreateYear] = useState(String(new Date().getFullYear()));
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const selectedBrand = VENEZUELA_MOTORCYCLES.find(b => b.brand === createBrand);
 
@@ -185,13 +188,19 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm(t('vehicle:confirm_delete'))) {
+  const handleDelete = (id: number) => {
+    setDeleteTargetId(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteTargetId !== null) {
       try {
-        await deleteVehicle(id);
+        await deleteVehicle(deleteTargetId);
         showToast(t('vehicle:deleted'), 'success');
       } catch {
         showToast(t('common:error_generic'), 'error');
+      } finally {
+        setDeleteTargetId(null);
       }
     }
   };
@@ -217,27 +226,23 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
 
         <div className="space-y-1">
           <label className={labelCls}>{t('vehicle:create_brand')}</label>
-          <select
+          <CustomSelect
             value={createBrand}
-            onChange={e => { setCreateBrand(e.target.value); setCreateModel(''); }}
-            className={inputCls}
-          >
-            <option value="">{t('vehicle:create_brand')}…</option>
-            {VENEZUELA_MOTORCYCLES.map(b => (
-              <option key={b.brand} value={b.brand}>{b.brand}</option>
-            ))}
-          </select>
+            onChange={value => { setCreateBrand(value); setCreateModel(''); }}
+            placeholder={`${t('vehicle:create_brand')}…`}
+            options={VENEZUELA_MOTORCYCLES.map(b => ({ value: b.brand, label: b.brand }))}
+          />
         </div>
 
         {selectedBrand && selectedBrand.models.length > 0 && (
           <div className="space-y-1">
             <label className={labelCls}>{t('vehicle:create_model')}</label>
-            <select value={createModel} onChange={e => setCreateModel(e.target.value)} className={inputCls}>
-              <option value="">{t('vehicle:create_select_model')}</option>
-              {selectedBrand.models.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
+            <CustomSelect
+              value={createModel}
+              onChange={setCreateModel}
+              placeholder={t('vehicle:create_select_model')}
+              options={selectedBrand.models.map(m => ({ value: m, label: m }))}
+            />
           </div>
         )}
 
@@ -317,56 +322,58 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
         <section className="bg-surface-container rounded-2xl p-4 shadow-elevation-1">
           <div className="flex items-center justify-between mb-3">
             <span className="font-label text-[10px] font-black uppercase tracking-widest text-secondary">
-              {t('vehicle:section_identity')} — {vehicles.length} {vehicles.length === 1 ? 'unidad' : 'unidades'}
+              {vehicles.length} {vehicles.length === 1 ? 'unidad' : 'unidades'}
             </span>
-            <div className="flex items-center gap-2">
-              {setActiveTab && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('manuals')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-high text-on-surface rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-surface-low transition-colors"
-                >
-                  <BookOpen className="w-3 h-3" />
-                  {t('vehicle:manuals_link')}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={openCreateModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-primary transition-colors"
-              >
-                <Plus className="w-3 h-3" />
-                {t('vehicle:add_new')}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-primary transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+              {t('vehicle:add_new')}
+            </button>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-col gap-2">
             {vehicles.map(v => {
               const isActive = v.id === vehicle?.id;
               return (
-                <div key={v.id} className="flex items-center gap-1 group">
+                <div
+                  key={v.id}
+                  className={`flex items-center gap-2 rounded-2xl px-3 py-2.5 transition-colors ${
+                    isActive ? 'bg-primary/10' : 'bg-surface-high'
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => setActiveVehicle(v.id!)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-headline font-bold uppercase tracking-tight transition-all ${
-                      isActive
-                        ? 'bg-primary text-on-primary shadow-elevation-1'
-                        : 'bg-surface-high text-surface-variant hover:bg-surface-low hover:text-on-surface'
-                    }`}
+                    className="flex items-center gap-2 flex-1 text-left min-w-0"
                   >
-                    {isActive && <BadgeCheck className="w-3 h-3" />}
-                    {v.identificadorUnidad || `UNIDAD_${String(v.id).slice(-4)}`}
-                    <span className="opacity-60">({v.marca})</span>
+                    {isActive && <BadgeCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                    <span className={`text-xs font-headline font-bold uppercase tracking-tight truncate ${isActive ? 'text-primary' : 'text-on-surface'}`}>
+                      {v.identificadorUnidad || `UNIDAD_${String(v.id).slice(-4)}`}
+                    </span>
+                    <span className="text-[10px] text-surface-variant font-bold uppercase flex-shrink-0">
+                      ({v.marca})
+                    </span>
                   </button>
-                  {vehicles.length > 1 && (
+                  {setActiveTab && (
                     <button
                       type="button"
-                      onClick={() => handleDelete(v.id!)}
-                      className="w-6 h-6 rounded-full bg-surface-high flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors opacity-0 group-hover:opacity-100"
+                      title={t('vehicle:manuals_link')}
+                      onClick={() => { setActiveVehicle(v.id!); setActiveTab('manuals'); }}
+                      className="w-8 h-8 rounded-2xl flex items-center justify-center text-surface-variant hover:text-primary hover:bg-primary/10 transition-colors flex-shrink-0"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <BookOpen className="w-4 h-4" />
                     </button>
                   )}
+                  <button
+                    type="button"
+                    title={t('vehicle:delete_unit')}
+                    onClick={() => handleDelete(v.id!)}
+                    className="w-8 h-8 rounded-2xl flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               );
             })}
@@ -465,12 +472,16 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
             {/* Fuel Type */}
             <div className="space-y-1">
               <label className={labelCls}>{t('vehicle:fuel_type')}</label>
-              <select name="tipoCombustible" value={formData.tipoCombustible || ''} onChange={handleChange} className={inputCls}>
-                <option value="gasoline">⛽ {t('vehicle:gasoline')}</option>
-                <option value="diesel">🛢 {t('vehicle:diesel')}</option>
-                <option value="electric">⚡ {t('vehicle:electric')}</option>
-                <option value="hybrid">🔋 {t('vehicle:hybrid')}</option>
-              </select>
+              <CustomSelect
+                value={formData.tipoCombustible || 'gasoline'}
+                onChange={value => setFormData((prev: any) => ({ ...prev, tipoCombustible: value }))}
+                options={[
+                  { value: 'gasoline', label: `⛽ ${t('vehicle:gasoline')}` },
+                  { value: 'diesel',   label: `🛢 ${t('vehicle:diesel')}` },
+                  { value: 'electric', label: `⚡ ${t('vehicle:electric')}` },
+                  { value: 'hybrid',   label: `🔋 ${t('vehicle:hybrid')}` },
+                ]}
+              />
             </div>
 
             {/* Fuel Level 1–5 gauge */}
@@ -568,6 +579,15 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
         </div>
       </form>
       {createModalEl}
+      <ConfirmModal
+        isOpen={deleteTargetId !== null}
+        title={t('vehicle:delete_unit')}
+        message={t('vehicle:confirm_delete')}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+        confirmText={t('common:btn_delete')}
+        cancelText={t('common:btn_cancel')}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { computeServiceAlerts } from '../utils/serviceAlerts';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen, Spinner } from '../components/ui/Spinner';
 import { arrayBufferToUrl, toArrayBuffer } from '../utils/fileUtils';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export function MaintenanceScreen() {
   const { t } = useTranslation(['maintenance', 'seo', 'common']);
@@ -29,6 +30,11 @@ export function MaintenanceScreen() {
   const [formNotes, setFormNotes] = useState('');
   const [formPhoto, setFormPhoto] = useState<ArrayBuffer | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  // Custom integrated confirm modal states
+  const [deleteMaintId, setDeleteMaintId] = useState<number | null>(null);
+  const [markSchedTarget, setMarkSchedTarget] = useState<any>(null);
+  const [deleteSchedId, setDeleteSchedId] = useState<number | null>(null);
 
   const isLoading = maintLoading || logsLoading;
 
@@ -115,13 +121,15 @@ export function MaintenanceScreen() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm(t('logs:confirm_delete'))) {
+  const handleConfirmDeleteMaint = async () => {
+    if (deleteMaintId !== null) {
       try {
-        await removeMaintenance(id);
+        await removeMaintenance(deleteMaintId);
         showToast(t('common:saved_success'), 'success');
       } catch {
         showToast(t('common:error_generic'), 'error');
+      } finally {
+        setDeleteMaintId(null);
       }
     }
   };
@@ -143,23 +151,29 @@ export function MaintenanceScreen() {
     }
   };
 
-  const handleMarkServiced = async (alertSchedule: typeof schedules[number]) => {
-    if (!confirm(t('maintenance:schedule_confirm_mark'))) return;
-    try {
-      await markServiced(alertSchedule, currentOdo);
-      showToast(t('common:saved_success'), 'success');
-    } catch {
-      showToast(t('common:error_generic'), 'error');
+  const handleConfirmMarkServiced = async () => {
+    if (markSchedTarget) {
+      try {
+        await markServiced(markSchedTarget, currentOdo);
+        showToast(t('common:saved_success'), 'success');
+      } catch {
+        showToast(t('common:error_generic'), 'error');
+      } finally {
+        setMarkSchedTarget(null);
+      }
     }
   };
 
-  const handleDeleteSchedule = async (id: number) => {
-    if (!confirm(t('maintenance:schedule_confirm_delete'))) return;
-    try {
-      await removeSchedule(id);
-      showToast(t('common:saved_success'), 'success');
-    } catch {
-      showToast(t('common:error_generic'), 'error');
+  const handleConfirmDeleteSchedule = async () => {
+    if (deleteSchedId !== null) {
+      try {
+        await removeSchedule(deleteSchedId);
+        showToast(t('common:saved_success'), 'success');
+      } catch {
+        showToast(t('common:error_generic'), 'error');
+      } finally {
+        setDeleteSchedId(null);
+      }
     }
   };
 
@@ -176,64 +190,69 @@ export function MaintenanceScreen() {
       </Helmet>
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
-      {/* MD3 Hero Card — Oil Life */}
-      <section className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-        <div className={`md:col-span-8 rounded-2xl p-8 shadow-elevation-2 ${stats.lifePercent > 20 ? 'bg-surface-low' : 'bg-error-container/20'}`}>
-          <span className={`font-label text-[10px] font-bold tracking-[0.2em] uppercase mb-3 block ${stats.lifePercent > 20 ? 'text-secondary' : 'text-error'}`}>
-            {t('maintenance:vitality_status')}
-          </span>
-          <h2 className="font-headline text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-5">
-            {t('maintenance:oil_life')}{' '}
-            <span className={stats.lifePercent > 20 ? 'text-primary' : 'text-error'}>
-              {stats.lifePercent.toFixed(0)}%
+      {/* Bento Grid — Optimized Oil Status & Service */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Vida del Aceite */}
+        <div className={`sm:col-span-2 rounded-xl p-6 shadow-elevation-2 flex flex-col justify-between min-h-[170px] ${stats.lifePercent > 20 ? 'bg-surface-low' : 'bg-error-container/20'}`}>
+          <div>
+            <span className={`font-label text-[9px] font-black tracking-widest uppercase mb-1 block ${stats.lifePercent > 20 ? 'text-secondary' : 'text-error'}`}>
+              {t('maintenance:vitality_status')}
             </span>
-          </h2>
-          <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${stats.lifePercent > 20 ? 'bg-primary' : 'bg-error'}`}
-              style={{ width: `${stats.lifePercent}%` }}
-            />
+            <h2 className="font-headline text-4xl font-black uppercase tracking-tight">
+              {t('maintenance:oil_life')}{' '}
+              <span className={stats.lifePercent > 20 ? 'text-primary' : 'text-error'}>
+                {stats.lifePercent.toFixed(0)}%
+              </span>
+            </h2>
+          </div>
+          <div className="mt-4">
+            <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden mb-2">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${stats.lifePercent > 20 ? 'bg-primary' : 'bg-error'}`}
+                style={{ width: `${stats.lifePercent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[9px] text-surface-variant font-bold uppercase tracking-wider">
+              <span>0%</span>
+              <span>100%</span>
+            </div>
           </div>
         </div>
-        <div className="md:col-span-4 bg-surface-container rounded-2xl p-8 flex flex-col justify-end shadow-elevation-1">
-          <span className="font-label text-secondary text-[10px] font-bold tracking-[0.2em] uppercase mb-2 block">
-            {t('maintenance:predicted_due')}
-          </span>
-          <div className="font-headline text-3xl font-bold tracking-tighter italic">
-            {stats.remainingKm.toLocaleString()} KM
+
+        {/* KM Restantes */}
+        <div className="bg-surface-container rounded-xl p-6 flex flex-col justify-between min-h-[170px] shadow-elevation-1">
+          <div>
+            <CalendarClock className="text-secondary mb-3 w-5 h-5" />
+            <span className="font-label text-secondary text-[9px] font-black tracking-widest uppercase mb-1 block">
+              KM Restantes
+            </span>
+          </div>
+          <div className="font-headline text-3xl font-black tracking-tight italic">
+            {stats.remainingKm.toLocaleString()} <span className="text-base font-bold text-surface-variant">KM</span>
+          </div>
+        </div>
+
+        {/* Info Cambio (Intervalo y Próximo Cambio) */}
+        <div className="bg-surface-high rounded-xl p-6 flex flex-col justify-between min-h-[170px] border-r-4 border-primary shadow-elevation-1">
+          <div>
+            <SlidersHorizontal className="text-primary mb-3 w-5 h-5" />
+            <span className="font-label text-tertiary text-[9px] font-black tracking-widest uppercase mb-1 block">
+              {t('maintenance:interval_configured')} / Próximo
+            </span>
+          </div>
+          <div>
+            <div className="font-headline text-2xl font-black tracking-tight mb-1">
+              {stats.interval.toLocaleString()} <span className="text-sm font-bold text-surface-variant">KM</span>
+            </div>
+            <div className="text-[10px] text-surface-variant font-bold uppercase tracking-wide">
+              Fija en: {stats.nextServiceKm.toLocaleString()} KM
+            </div>
           </div>
         </div>
       </section>
 
-      {/* MD3 Bento Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-surface-high rounded-2xl p-6 flex flex-col justify-between h-44 shadow-elevation-1">
-          <div>
-            <SlidersHorizontal className="text-secondary mb-3 w-5 h-5" />
-            <h3 className="font-label text-[10px] font-bold tracking-[0.2em] text-tertiary uppercase">
-              {t('maintenance:interval_configured')}
-            </h3>
-          </div>
-          <div className="flex items-end justify-between">
-            <div className="font-headline text-4xl font-black tracking-tighter">{stats.interval.toLocaleString()}</div>
-            <div className="font-label text-xs font-bold text-secondary mb-1 uppercase">KM</div>
-          </div>
-        </div>
-        <div className="bg-surface-lowest rounded-2xl p-6 flex flex-col justify-between h-44 border-r-4 border-primary shadow-elevation-1">
-          <div>
-            <CalendarClock className="text-primary mb-3 w-5 h-5" />
-            <h3 className="font-label text-[10px] font-bold tracking-[0.2em] text-tertiary uppercase">
-              {t('maintenance:predicted_due')}
-            </h3>
-          </div>
-          <div className="font-headline text-xl text-secondary font-medium">
-            {stats.nextServiceKm.toLocaleString()} KM
-          </div>
-        </div>
-      </div>
-
       {/* MD3 Card — Service Schedules / Predictive Alerts */}
-      <div className="bg-surface-container rounded-2xl p-6 mb-6 shadow-elevation-1">
+      <div className="bg-surface-container rounded-xl p-6 mb-6 shadow-elevation-1">
         <div className="flex justify-between items-center w-full mb-1">
           <div>
             <h4 className="font-headline text-xl font-bold uppercase tracking-tight flex items-center gap-2">
@@ -308,14 +327,14 @@ export function MaintenanceScreen() {
                     />
                   </div>
                   <button
-                    onClick={() => handleMarkServiced(schedule)}
+                    onClick={() => setMarkSchedTarget(schedule)}
                     title={t('maintenance:schedule_mark')}
                     className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-primary hover:bg-surface-high transition-colors"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteSchedule(schedule.id!)}
+                    onClick={() => setDeleteSchedId(schedule.id!)}
                     className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -328,7 +347,7 @@ export function MaintenanceScreen() {
       </div>
 
       {/* MD3 Card — Log Service Form */}
-      <div className="bg-surface-container rounded-2xl p-6 mb-6 shadow-elevation-1">
+      <div className="bg-surface-container rounded-xl p-6 mb-6 shadow-elevation-1">
         <div className="flex justify-between items-center w-full mb-2">
           <h4 className="font-headline text-xl font-bold uppercase tracking-tight">
             {t('maintenance:log_service')}
@@ -396,7 +415,7 @@ export function MaintenanceScreen() {
         </h5>
         <div className="space-y-2">
           {maintenanceLogs.length === 0 && (
-            <div className="bg-surface-lowest rounded-2xl p-10 text-center border border-outline-variant/20">
+            <div className="bg-surface-lowest rounded-xl p-10 text-center border border-outline-variant/20">
               <p className="font-headline text-lg font-bold text-surface-variant uppercase">
                 {t('maintenance:no_records')}
               </p>
@@ -439,7 +458,7 @@ export function MaintenanceScreen() {
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(log.id!)}
+                    onClick={() => setDeleteMaintId(log.id!)}
                     className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -454,7 +473,7 @@ export function MaintenanceScreen() {
       {/* MD3 Modal — Edit */}
       {editingMaint && (
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4 bg-scrim animate-in fade-in duration-200">
-          <div className="bg-surface-low rounded-2xl w-full max-w-lg p-7 space-y-6 shadow-elevation-3">
+          <div className="bg-surface-low rounded-xl w-full max-w-lg p-7 space-y-6 shadow-elevation-3">
             <div className="flex justify-between items-center">
               <h3 className="font-headline text-xl font-black uppercase text-primary">{t('common:btn_edit')}</h3>
               <button
@@ -514,6 +533,37 @@ export function MaintenanceScreen() {
           </div>
         </div>
       )}
+
+      {/* Integrated Custom Confirm Modals */}
+      <ConfirmModal
+        isOpen={deleteMaintId !== null}
+        title={t('logs:confirm_delete')}
+        message={t('logs:confirm_delete')}
+        onConfirm={handleConfirmDeleteMaint}
+        onCancel={() => setDeleteMaintId(null)}
+        confirmText={t('common:btn_delete')}
+        cancelText={t('common:btn_cancel')}
+      />
+
+      <ConfirmModal
+        isOpen={markSchedTarget !== null}
+        title={t('maintenance:schedules_title')}
+        message={t('maintenance:schedule_confirm_mark')}
+        onConfirm={handleConfirmMarkServiced}
+        onCancel={() => setMarkSchedTarget(null)}
+        confirmText={t('common:btn_save')}
+        cancelText={t('common:btn_cancel')}
+      />
+
+      <ConfirmModal
+        isOpen={deleteSchedId !== null}
+        title={t('maintenance:schedules_title')}
+        message={t('maintenance:schedule_confirm_delete')}
+        onConfirm={handleConfirmDeleteSchedule}
+        onCancel={() => setDeleteSchedId(null)}
+        confirmText={t('common:btn_delete')}
+        cancelText={t('common:btn_cancel')}
+      />
     </div>
   );
 }

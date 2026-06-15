@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gauge, ClipboardList, Route, Wrench, Bike, Settings } from 'lucide-react';
+import { Gauge, ClipboardList, Wrench, Bike, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BottomNavProps {
@@ -13,7 +13,6 @@ export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   const tabs = [
     { id: 'dashboard', icon: Gauge, label: t('nav_dashboard') },
     { id: 'logs', icon: ClipboardList, label: t('nav_logs') },
-    { id: 'routes', icon: Route, label: t('nav_routes') },
     { id: 'maintenance', icon: Wrench, label: t('nav_maintenance') },
     { id: 'profile', icon: Bike, label: t('nav_profile') },
     { id: 'settings', icon: Settings, label: t('nav_settings') },
