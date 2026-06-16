@@ -10,5 +10,11 @@
   "profile_title": "Perfil | Mantenimiento Vehicular",
   "profile_desc": "Gestiona los detalles, seguro y fotos de tu vehículo.",
   "manuals_title": "Manuales | Mantenimiento Vehicular",
-  "manuals_desc": "Guarda y consulta los manuales de tu moto sin conexión."
+  "manuals_desc": "Guarda y consulta los manuales de tu moto sin conexión.",
+  "settings_title": "Ajustes | Mantenimiento Vehicular",
+  "settings_desc": "Configura el idioma, unidades y almacenamiento local.",
+  "terms_title": "Términos y Condiciones | NAVE",
+  "terms_desc": "Lee los términos y condiciones de uso de la app NAVE.",
+  "privacy_title": "Política de Privacidad | NAVE",
+  "privacy_desc": "Consulta nuestra política de privacidad de datos locales."
 }

@@ -10,5 +10,11 @@
   "profile_title": "Profile | Maintenance App",
   "profile_desc": "Manage details, insurance, and photos of your vehicle.",
   "manuals_title": "Manuals | Maintenance App",
-  "manuals_desc": "Store and read your motorcycle manuals offline."
+  "manuals_desc": "Store and read your motorcycle manuals offline.",
+  "settings_title": "Settings | Maintenance App",
+  "settings_desc": "Configure language, units, and local storage settings.",
+  "terms_title": "Terms & Conditions | NAVE",
+  "terms_desc": "Read the terms and conditions of using NAVE app.",
+  "privacy_title": "Privacy Policy | NAVE",
+  "privacy_desc": "Read our local data privacy policy."
 }

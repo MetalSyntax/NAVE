@@ -13,7 +13,7 @@ export function useRoutes() {
     setIsLoading(true);
     try {
       const data = await getAll<RouteEntry>('routes');
-      const filtered = data.filter(r => !r.vehicleId || r.vehicleId === activeVehicleId);
+      const filtered = data.filter(r => !r.vehicleId || r.vehicleId == activeVehicleId);
       filtered.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
       setRoutes(filtered);
     } catch (err: any) {

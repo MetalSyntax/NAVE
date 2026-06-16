@@ -107,6 +107,7 @@ export interface SettingsData {
   activeVehicleId?: number;
   initialized?: boolean;      // true tras la siembra inicial
   onboardingComplete?: boolean; // true cuando el usuario completó el onboarding
+  expertMode?: boolean;         // true = muestra métricas técnicas avanzadas
 }
 
 export interface UserData {

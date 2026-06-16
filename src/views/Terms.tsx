@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowLeft, FileText } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/ui/SEO';
 
 interface TermsScreenProps {
   setActiveTab: (tab: string) => void;
@@ -9,7 +9,7 @@ interface TermsScreenProps {
 export function TermsScreen({ setActiveTab }: TermsScreenProps) {
   return (
     <div className="animate-in fade-in duration-500 pb-12">
-      <Helmet><title>Términos y Condiciones | NAVE</title></Helmet>
+      <SEO titleKey="terms_title" descKey="terms_desc" />
 
       {/* Back */}
       <button

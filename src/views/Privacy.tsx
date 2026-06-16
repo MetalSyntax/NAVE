@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowLeft, Shield, Database, Eye, Bell, Trash2, Download } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/ui/SEO';
 
 interface PrivacyScreenProps {
   setActiveTab: (tab: string) => void;
@@ -54,7 +54,7 @@ export function PrivacyScreen({ setActiveTab }: PrivacyScreenProps) {
 
   return (
     <div className="animate-in fade-in duration-500 pb-12">
-      <Helmet><title>Política de Privacidad | NAVE</title></Helmet>
+      <SEO titleKey="privacy_title" descKey="privacy_desc" />
 
       <button
         onClick={() => setActiveTab('settings')}

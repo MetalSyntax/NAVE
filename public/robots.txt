@@ -1,3 +1,50 @@
 User-agent: *
 Allow: /
+Allow: /manuals
+Allow: /terms
+Allow: /privacy
+Disallow: /dashboard
+Disallow: /logs
+Disallow: /routes
+Disallow: /maintenance
+Disallow: /vehicle
+Disallow: /settings
+
+# Permitir a agentes de IA de búsqueda indexar el contenido público para citas
+User-agent: GPTBot
+Allow: /
+Allow: /manuals
+Allow: /terms
+Allow: /privacy
+Disallow: /dashboard
+Disallow: /logs
+Disallow: /routes
+Disallow: /maintenance
+Disallow: /vehicle
+Disallow: /settings
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /manuals
+Allow: /terms
+Allow: /privacy
+Disallow: /dashboard
+Disallow: /logs
+Disallow: /routes
+Disallow: /maintenance
+Disallow: /vehicle
+Disallow: /settings
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /manuals
+Allow: /terms
+Allow: /privacy
+Disallow: /dashboard
+Disallow: /logs
+Disallow: /routes
+Disallow: /maintenance
+Disallow: /vehicle
+Disallow: /settings
+
 Sitemap: https://tu-dominio.com/sitemap.xml

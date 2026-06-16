@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import { TrendingUp, PlusCircle, Droplet, BellRing, Bike, Route, Wrench, BookOpen, Fuel, ChevronRight } from 'lucide-react';
+import { TrendingUp, PlusCircle, Droplet, BellRing, Bike, Route, Wrench, BookOpen, Fuel, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/ui/SEO';
 import { useLogs } from '../hooks/useLogs';
 import { useMaintenance } from '../hooks/useMaintenance';
 import { useServiceSchedules } from '../hooks/useServiceSchedules';
@@ -12,6 +12,10 @@ import { useManuals } from '../hooks/useManuals';
 import { computeServiceAlerts } from '../utils/serviceAlerts';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen } from '../components/ui/Spinner';
+
+const FUEL_LEVEL_LABELS: Record<number, string> = {
+  1: 'Crítica', 2: 'Baja', 3: 'Media', 4: 'Alta', 5: 'Llena',
+};
 
 export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const { t } = useTranslation(['seo', 'common', 'vehicle', 'dashboard', 'maintenance']);
@@ -26,6 +30,8 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
   const notifiedRef = useRef(false);
 
   const isLoading = logsLoading || maintLoading;
+  const hasLogs = logs.length > 0;
+  const hasMaintenanceData = maintenanceLogs.length > 0;
 
   const stats = useMemo(() => {
     let totalDist = 0;
@@ -65,8 +71,25 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
     return { totalDist, distThisWeek, oilRemaining, oilLifePercent };
   }, [logs, maintenanceLogs, settings]);
 
+  // Contextual oil status — tells the user what to DO, not just what the number is
+  const oilStatus = useMemo(() => {
+    if (!hasMaintenanceData) {
+      return { msg: t('dashboard:oil_no_data'), color: 'text-surface-variant', barColor: 'bg-surface-variant', urgency: 'none' as const };
+    }
+    if (stats.oilLifePercent >= 50) {
+      return { msg: t('dashboard:oil_status_good', { km: stats.oilRemaining }), color: 'text-primary', barColor: 'bg-primary', urgency: 'good' as const };
+    }
+    if (stats.oilLifePercent >= 20) {
+      return { msg: t('dashboard:oil_status_warn'), color: 'text-secondary', barColor: 'bg-secondary', urgency: 'warn' as const };
+    }
+    if (stats.oilLifePercent > 0) {
+      return { msg: t('dashboard:oil_status_urgent'), color: 'text-error', barColor: 'bg-error', urgency: 'critical' as const };
+    }
+    return { msg: t('dashboard:oil_status_overdue'), color: 'text-error', barColor: 'bg-error', urgency: 'overdue' as const };
+  }, [hasMaintenanceData, stats.oilLifePercent, stats.oilRemaining, t]);
+
   const recentActivity = useMemo(() => {
-    const l = logs.map(x => ({ id: `L-${x.id}`, title: `${t('dashboard:fuel_refill')} - ${x.fuel}L`, date: new Date(x.date), type: 'log' }));
+    const l = logs.map(x => ({ id: `L-${x.id}`, title: `${t('dashboard:fuel_refill')} — ${x.fuel}L`, date: new Date(x.date), type: 'log' }));
     const m = maintenanceLogs.map(x => ({ id: `M-${x.id}`, title: x.type, date: new Date(x.date), type: 'maint' }));
 
     return [...l, ...m]
@@ -75,17 +98,17 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
       .map((item, index) => ({
         id: `0${index + 1}`,
         title: item.title,
-        sub: `${item.type === 'maint' ? t('dashboard:maint_label') : t('dashboard:telemetry_label')} • ${item.date.toLocaleDateString()}`,
-        type: item.type
+        sub: `${item.type === 'maint' ? t('dashboard:maint_label') : t('dashboard:telemetry_label')} · ${item.date.toLocaleDateString()}`,
+        type: item.type,
       }));
-  }, [logs, maintenanceLogs]);
+  }, [logs, maintenanceLogs, t]);
 
   const currentOdo = Math.max(stats.totalDist, vehicle?.kilometrajeActual || 0);
   const alerts = useMemo(() => computeServiceAlerts(schedules, currentOdo), [schedules, currentOdo]);
   const activeAlerts = useMemo(() => alerts.filter(a => a.level !== 'ok'), [alerts]);
   const svcLabel = (type: string) => t(`maintenance:svc_${type}`, { defaultValue: type });
 
-  // Notificación única por sesión cuando hay servicios vencidos/próximos.
+  // Notificación única por sesión cuando hay servicios vencidos/próximos
   useEffect(() => {
     if (notifiedRef.current || activeAlerts.length === 0) return;
     notifiedRef.current = true;
@@ -96,27 +119,36 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
     sendNotification(t('dashboard:alerts_title'), `${svcLabel(top.schedule.type)} — ${detail}`, 'service-alerts');
   }, [activeAlerts]);
 
-  const lastEff = useMemo(() => {
-    if (!logs || logs.length === 0) return 0;
-    return [...logs].sort((a, b) => b.odo - a.odo)[0].eff || 0;
-  }, [logs]);
   const completedRoutes = useMemo(() => routes.filter(r => r.status === 'completed'), [routes]);
   const lastRoute = completedRoutes[0];
   const nextService = activeAlerts[0]?.nextKm ?? (vehicle?.kilometrajeProximoServicio || 0);
 
   if (isLoading && (!logs || logs.length === 0)) return <LoadingScreen />;
 
+  const isOilCritical = oilStatus.urgency === 'critical' || oilStatus.urgency === 'overdue';
+  const isOilWarn = oilStatus.urgency === 'warn';
+  const fuelLabel = vehicle ? (FUEL_LEVEL_LABELS[vehicle.nivelGasolina] ?? `${vehicle.nivelGasolina}/5`) : null;
+
   return (
     <div className="space-y-5 animate-in fade-in duration-500">
-      <Helmet>
-        <title>{t('seo:home_title')}</title>
-        <meta name="description" content={t('seo:home_desc')} />
-      </Helmet>
+      <SEO
+        titleKey="home_title"
+        descKey="home_desc"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'NAVE',
+          operatingSystem: 'All',
+          applicationCategory: 'AutomotiveApplication',
+          offers: { '@type': 'Offer', price: '0.00', priceCurrency: 'USD' },
+          description: t('seo:home_desc'),
+        }}
+      />
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
 
-        {/* MD3 Card — Service Alerts banner */}
+        {/* ── Alertas de servicio ─────────────────────────────────────────── */}
         {activeAlerts.length > 0 && (
           <button
             onClick={() => setActiveTab('maintenance')}
@@ -129,10 +161,11 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
               <p className="font-label text-[10px] font-bold tracking-[0.15rem] uppercase text-error mb-1">
                 {t('dashboard:alerts_title')}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
                 {activeAlerts.slice(0, 3).map(a => (
                   <span key={a.schedule.id} className="font-headline text-xs font-bold uppercase text-on-surface">
-                    {svcLabel(a.schedule.type)} ·{' '}
+                    {svcLabel(a.schedule.type)}
+                    {' · '}
                     <span className={a.level === 'due' ? 'text-error' : 'text-secondary'}>
                       {a.level === 'due' ? t('dashboard:alert_due') : t('dashboard:alert_in', { km: a.remaining.toLocaleString() })}
                     </span>
@@ -140,32 +173,50 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
                 ))}
               </div>
             </div>
+            <ChevronRight className="w-4 h-4 text-error flex-shrink-0" />
           </button>
         )}
 
-        {/* MD3 Elevated Card — Total Distance */}
+        {/* ── Distancia total ─────────────────────────────────────────────── */}
         <section className="md:col-span-8 bg-surface-low rounded-xl p-8 relative overflow-hidden shadow-elevation-1">
-          <div className="absolute top-0 left-0 w-1 h-full bg-primary-container rounded-l-xl"></div>
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary-container rounded-l-xl" />
           <label className="text-secondary font-label text-[10px] font-bold tracking-[0.15rem] uppercase mb-4 block pl-3">
             {t('dashboard:label_total_distance')}
           </label>
-          <div className="flex items-baseline gap-2 pl-3">
-            <span className="font-headline font-black text-7xl md:text-8xl tracking-tighter italic">
-              {stats.totalDist.toLocaleString()}
-            </span>
-            <span className="font-headline font-bold text-2xl text-surface-variant">KM</span>
-          </div>
-          <div className="mt-6 flex gap-3 pl-3">
-            <div className="bg-surface-container rounded-xl px-4 py-2 flex items-center gap-2">
-              <TrendingUp className="text-secondary w-4 h-4" />
-              <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">
-                +{stats.distThisWeek} {t('dashboard:this_week')}
-              </span>
+
+          {hasLogs ? (
+            <>
+              <div className="flex items-baseline gap-2 pl-3">
+                <span className="font-headline font-black text-7xl md:text-8xl tracking-tighter italic">
+                  {stats.totalDist.toLocaleString()}
+                </span>
+                <span className="font-headline font-bold text-2xl text-surface-variant">KM</span>
+              </div>
+              <div className="mt-6 flex gap-3 pl-3">
+                <div className="bg-surface-container rounded-xl px-4 py-2 flex items-center gap-2">
+                  <TrendingUp className="text-secondary w-4 h-4" />
+                  <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">
+                    +{stats.distThisWeek.toLocaleString()} {t('dashboard:this_week')}
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="pl-3 space-y-3 pt-2">
+              <p className="font-headline font-bold text-xl text-surface-variant">{t('dashboard:no_logs_title')}</p>
+              <p className="text-sm text-surface-variant/70">{t('dashboard:no_logs_sub')}</p>
+              <button
+                onClick={() => setActiveTab('logs')}
+                className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-full font-headline font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-colors"
+              >
+                <PlusCircle className="w-4 h-4" />
+                {t('dashboard:no_logs_cta')}
+              </button>
             </div>
-          </div>
+          )}
         </section>
 
-        {/* MD3 Tonal Button — Quick Add (compact) */}
+        {/* ── Botón registro rápido ───────────────────────────────────────── */}
         <div className="md:col-span-4 flex items-start">
           <button
             onClick={() => setActiveTab('logs')}
@@ -180,46 +231,74 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
           </button>
         </div>
 
-        {/* MD3 Card — Oil / Service Life */}
+        {/* ── Estado del aceite ───────────────────────────────────────────── */}
         <section
-          className={`md:col-span-12 rounded-xl p-8 shadow-elevation-1 ${
-            stats.oilLifePercent > 20 ? 'bg-surface-low' : 'bg-error-container/20'
+          className={`md:col-span-12 rounded-xl p-8 shadow-elevation-1 transition-colors ${
+            isOilCritical ? 'bg-error-container/20' : isOilWarn ? 'bg-secondary/5' : 'bg-surface-low'
           }`}
         >
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <label className={`font-label text-[10px] font-bold tracking-[0.15rem] uppercase block mb-1 ${stats.oilLifePercent > 20 ? 'text-primary' : 'text-error'}`}>
+          <div className="flex justify-between items-start mb-5">
+            <div className="min-w-0 flex-1">
+              <label className={`font-label text-[10px] font-bold tracking-[0.15rem] uppercase block mb-1 ${isOilCritical ? 'text-error' : 'text-primary'}`}>
                 {t('dashboard:oil_service')}
               </label>
-              <span className="font-headline font-black text-5xl italic tracking-tighter">
-                {stats.oilRemaining}{' '}
-                <span className="text-2xl text-surface-variant">KM</span>
-              </span>
+              {hasMaintenanceData && (
+                <span className="font-headline font-black text-5xl italic tracking-tighter">
+                  {stats.oilRemaining}{' '}
+                  <span className="text-2xl text-surface-variant">KM</span>
+                </span>
+              )}
             </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stats.oilLifePercent > 20 ? 'bg-primary/10' : 'bg-error/10'}`}>
-              <Droplet className={`${stats.oilLifePercent > 20 ? 'text-primary' : 'text-error'} w-6 h-6`} />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              isOilCritical ? 'bg-error/10' : isOilWarn ? 'bg-secondary/10' : 'bg-primary/10'
+            }`}>
+              {isOilCritical
+                ? <AlertTriangle className="text-error w-6 h-6" />
+                : <Droplet className={`${isOilWarn ? 'text-secondary' : 'text-primary'} w-6 h-6`} />
+              }
             </div>
           </div>
-          <div className="relative w-full h-2 bg-surface-container rounded-full overflow-hidden">
-            <div
-              className={`absolute top-0 left-0 h-full rounded-full transition-all duration-700 ${stats.oilLifePercent > 20 ? 'bg-primary' : 'bg-error'}`}
-              style={{ width: `${stats.oilLifePercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-2 text-[10px] text-surface-variant font-bold uppercase tracking-wide">
-            <span>0 KM</span>
-            <span>{stats.oilLifePercent.toFixed(0)}%</span>
+
+          {hasMaintenanceData && (
+            <>
+              <div className="relative w-full h-2.5 bg-surface-container rounded-full overflow-hidden mb-2">
+                <div
+                  className={`absolute top-0 left-0 h-full rounded-full transition-all duration-700 ${oilStatus.barColor}`}
+                  style={{ width: `${stats.oilLifePercent}%` }}
+                />
+              </div>
+              {settings?.expertMode && (
+                <div className="flex justify-between text-[10px] text-surface-variant font-bold uppercase tracking-wide mb-3">
+                  <span>0 km</span>
+                  <span>{stats.oilLifePercent.toFixed(0)}%</span>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Mensaje de acción contextual */}
+          <div className={`flex items-center gap-2 ${hasMaintenanceData ? '' : 'mt-2'}`}>
+            <p className={`text-sm font-bold ${oilStatus.color}`}>{oilStatus.msg}</p>
+            {!hasMaintenanceData && (
+              <button
+                onClick={() => setActiveTab('maintenance')}
+                className="ml-2 text-[11px] font-headline font-black uppercase tracking-widest text-primary hover:underline flex-shrink-0"
+              >
+                {t('dashboard:oil_no_data_cta')} →
+              </button>
+            )}
           </div>
         </section>
 
-        {/* MD3 — General Summary (data from every view) */}
+        {/* ── Resumen general ─────────────────────────────────────────────── */}
         <section className="md:col-span-12 mt-4">
           <h2 className="font-headline font-black text-xl tracking-tighter uppercase mb-4 flex items-center gap-3">
-            <span className="w-6 h-[2px] bg-secondary rounded-full inline-block"></span>
+            <span className="w-6 h-[2px] bg-secondary rounded-full inline-block" />
             {t('dashboard:summary_title')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {/* Vehículo */}
+
+            {/* Mi Moto */}
             <button onClick={() => setActiveTab('profile')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
               <div className="flex items-center justify-between mb-3">
                 <Bike className="w-5 h-5 text-primary" />
@@ -229,9 +308,9 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
               <p className="font-headline font-black text-base uppercase tracking-tight truncate">
                 {vehicle ? `${vehicle.marca} ${vehicle.modelo}` : t('dashboard:summary_no_vehicle')}
               </p>
-              {vehicle && (
-                <p className="text-[10px] text-surface-variant font-bold uppercase tracking-wider mt-1">
-                  {vehicle.nivelGasolina}/5 · {vehicle.rendimientoKmL} KM/L
+              {vehicle && fuelLabel && (
+                <p className="text-[10px] text-surface-variant font-bold mt-1">
+                  {fuelLabel} · {vehicle.rendimientoKmL} km/L
                 </p>
               )}
             </button>
@@ -244,21 +323,29 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
               </div>
               <p className="font-label text-[9px] font-bold tracking-widest uppercase text-surface-variant mb-1">{t('dashboard:summary_routes')}</p>
               <p className="font-headline font-black text-2xl tracking-tighter">{completedRoutes.length}</p>
-              <p className="text-[10px] text-surface-variant font-bold uppercase tracking-wider mt-1">
-                {lastRoute ? `${t('dashboard:summary_last_route')}: ${(lastRoute.distance || 0).toLocaleString()} KM` : t('dashboard:summary_no_routes')}
+              <p className="text-[10px] text-surface-variant font-bold mt-1">
+                {lastRoute
+                  ? `${t('dashboard:summary_last_route')}: ${(lastRoute.distance || 0).toLocaleString()} km`
+                  : t('dashboard:summary_no_routes')}
               </p>
             </button>
 
             {/* Próximo servicio */}
-            <button onClick={() => setActiveTab('maintenance')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group">
+            <button onClick={() => setActiveTab('maintenance')} className="text-left bg-surface-container rounded-xl p-5 shadow-elevation-1 hover:bg-surface-high transition-colors group relative overflow-hidden">
+              {activeAlerts.length > 0 && (
+                <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-error animate-pulse" />
+              )}
               <div className="flex items-center justify-between mb-3">
                 <Wrench className="w-5 h-5 text-primary" />
                 <ChevronRight className="w-4 h-4 text-surface-variant group-hover:text-primary" />
               </div>
               <p className="font-label text-[9px] font-bold tracking-widest uppercase text-surface-variant mb-1">{t('dashboard:summary_maintenance')}</p>
-              <p className="font-headline font-black text-2xl tracking-tighter">{nextService.toLocaleString()}<span className="text-sm text-surface-variant"> KM</span></p>
-              <p className="text-[10px] text-surface-variant font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
-                <Fuel className="w-3 h-3" /> {t('dashboard:summary_efficiency')}: {lastEff > 0 ? `${lastEff.toFixed(1)} L/100` : '--'}
+              <p className="font-headline font-black text-2xl tracking-tighter">
+                {nextService > 0 ? nextService.toLocaleString() : '--'}
+                {nextService > 0 && <span className="text-sm text-surface-variant"> km</span>}
+              </p>
+              <p className={`text-[10px] font-bold mt-1 ${activeAlerts.length > 0 ? 'text-error' : 'text-primary'}`}>
+                {activeAlerts.length > 0 ? t('dashboard:summary_service_due') : t('dashboard:summary_service_ok')}
               </p>
             </button>
 
@@ -274,43 +361,41 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
           </div>
         </section>
 
-        {/* MD3 List — Recent Activity */}
+        {/* ── Actividad reciente — solo visible cuando hay registros ────── */}
+        {recentActivity.length > 0 && (
         <section className="md:col-span-12 mt-4">
           <h2 className="font-headline font-black text-xl tracking-tighter uppercase mb-4 flex items-center gap-3">
-            <span className="w-6 h-[2px] bg-primary rounded-full inline-block"></span>
+            <span className="w-6 h-[2px] bg-primary rounded-full inline-block" />
             {t('dashboard:recent_telemetry')}
           </h2>
 
-          {recentActivity.length === 0 && (
-            <div className="bg-surface-low rounded-xl p-8 text-center border border-outline-variant/30">
-              <p className="font-headline text-lg font-bold text-surface-variant uppercase">
-                {t('dashboard:no_activity')}
-              </p>
-            </div>
-          )}
-
-          {/* MD3 List Items */}
           <div className="flex flex-col gap-2">
-            {recentActivity.map((item, idx) => (
-              <div
-                key={item.id}
-                className="bg-surface-container rounded-xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
-              >
-                <div className="flex items-center gap-5">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-headline font-black ${item.type === 'maint' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
-                    {item.id}
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-base uppercase">{item.title}</h3>
-                    <p className="text-[10px] text-surface-variant font-bold uppercase tracking-widest">
-                      {item.sub}
-                    </p>
+              {recentActivity.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-surface-container rounded-xl p-5 flex justify-between items-center hover:bg-surface-high transition-colors duration-150"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      item.type === 'maint' ? 'bg-primary/10' : 'bg-secondary/10'
+                    }`}>
+                      {item.type === 'maint'
+                        ? <Wrench className="w-4 h-4 text-primary" />
+                        : <Fuel className="w-4 h-4 text-secondary" />
+                      }
+                    </div>
+                    <div>
+                      <h3 className="font-headline font-bold text-base uppercase">{item.title}</h3>
+                      <p className="text-[10px] text-surface-variant font-bold uppercase tracking-widest">
+                        {item.sub}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
         </section>
+        )}
       </div>
     </div>
   );

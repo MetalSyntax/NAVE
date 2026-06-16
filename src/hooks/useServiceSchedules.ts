@@ -13,7 +13,7 @@ export function useServiceSchedules() {
     setIsLoading(true);
     try {
       const data = await getAll<ServiceSchedule>('serviceSchedules');
-      const filtered = data.filter(s => !s.vehicleId || s.vehicleId === activeVehicleId);
+      const filtered = data.filter(s => !s.vehicleId || s.vehicleId == activeVehicleId);
       setSchedules(filtered);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch service schedules');

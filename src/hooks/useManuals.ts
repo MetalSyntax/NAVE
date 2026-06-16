@@ -14,7 +14,7 @@ export function useManuals() {
     setIsLoading(true);
     try {
       const data = await getAll<ManualEntry>('manuals');
-      const filtered = data.filter(m => !m.vehicleId || m.vehicleId === activeVehicleId);
+      const filtered = data.filter(m => !m.vehicleId || m.vehicleId == activeVehicleId);
       filtered.sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
       setManuals(filtered);
     } catch (err: any) {

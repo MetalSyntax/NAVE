@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen, ChevronDown, X, Bike } from 'lucide-react';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { useTranslation } from 'react-i18next';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/ui/SEO';
 import { useVehicle } from '../hooks/useVehicle';
 import { VENEZUELA_MOTORCYCLES } from '../data/venezuelaMotorcycles';
 import { Toast, useToast } from '../components/ui/Toast';
@@ -268,10 +268,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
   if (!vehicle) {
     return (
       <div className="animate-in fade-in duration-500">
-        <Helmet>
-          <title>{t('seo:profile_title')}</title>
-          <meta name="description" content={t('seo:profile_desc')} />
-        </Helmet>
+        <SEO titleKey="profile_title" descKey="profile_desc" />
         {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
         <div className="bg-surface-low rounded-2xl p-10 flex flex-col items-center justify-center text-center shadow-elevation-1 mt-4">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
@@ -300,10 +297,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
 
   return (
     <div className="animate-in fade-in duration-500">
-      <Helmet>
-        <title>{t('seo:profile_title')}</title>
-        <meta name="description" content={t('seo:profile_desc')} />
-      </Helmet>
+      <SEO titleKey="profile_title" descKey="profile_desc" />
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <form onSubmit={handleSubmit} className="space-y-6 pb-12">
@@ -440,13 +434,14 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
               { name: 'modelo', label: t('vehicle:model') },
               { name: 'anio', label: t('vehicle:year'), type: 'number', min: '1900', max: '2100' },
               { name: 'placa', label: t('vehicle:license_plate') },
-              { name: 'vin', label: t('vehicle:vin') },
+              { name: 'vin', label: t('vehicle:vin'), hint: t('vehicle:hint_vin') },
               { name: 'identificadorUnidad', label: t('vehicle:label_unit_id') },
               { name: 'categoria', label: t('vehicle:label_category') },
-            ].map(({ name, label, type = 'text', min, max }: any) => (
+            ].map(({ name, label, type = 'text', min, max, hint }: any) => (
               <div key={name} className="space-y-1">
                 <label className={labelCls}>{label}</label>
                 <input name={name} value={formData[name] || ''} onChange={handleChange} type={type} min={min} max={max} className={inputCls} />
+                {hint && <p className="text-[11px] text-surface-variant mt-1 leading-snug">{hint}</p>}
               </div>
             ))}
           </div>
@@ -510,14 +505,15 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
 
             {/* Mileage fields */}
             {[
-              { name: 'kilometrajeActual', label: t('vehicle:current_mileage') },
-              { name: 'rendimientoKmL', label: t('vehicle:fuel_efficiency'), step: '0.1' },
-              { name: 'kilometrajeUltimoServicio', label: 'KM Último Servicio' },
-              { name: 'kilometrajeProximoServicio', label: 'KM Próximo Servicio' },
-            ].map(({ name, label, step }: any) => (
+              { name: 'kilometrajeActual', label: t('vehicle:current_mileage'), hint: t('vehicle:hint_mileage') },
+              { name: 'rendimientoKmL', label: t('vehicle:fuel_efficiency'), step: '0.1', hint: t('vehicle:hint_efficiency') },
+              { name: 'kilometrajeUltimoServicio', label: t('vehicle:label_km_last_service') },
+              { name: 'kilometrajeProximoServicio', label: t('vehicle:label_km_next_service') },
+            ].map(({ name, label, step, hint }: any) => (
               <div key={name} className="space-y-1">
                 <label className={labelCls}>{label}</label>
                 <input name={name} value={formData[name] || ''} onChange={handleChange} type="number" step={step} className={inputCls} />
+                {hint && <p className="text-[11px] text-surface-variant mt-1 leading-snug">{hint}</p>}
               </div>
             ))}
 

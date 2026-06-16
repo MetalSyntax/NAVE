@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, FileUp, FileText, Eye, Download, Trash2, BookOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/ui/SEO';
 import { useManuals } from '../hooks/useManuals';
 import { arrayBufferToUrl } from '../utils/fileUtils';
 import { ManualEntry } from '../db/database';
@@ -70,10 +70,40 @@ export function ManualsScreen({ setActiveTab }: { setActiveTab: (tab: string) =>
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-      <Helmet>
-        <title>{t('seo:manuals_title')}</title>
-        <meta name="description" content={t('seo:manuals_desc')} />
-      </Helmet>
+      <SEO 
+        titleKey="manuals_title" 
+        descKey="manuals_desc" 
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": t('manuals:faq_q1'),
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": t('manuals:faq_a1')
+              }
+            },
+            {
+              "@type": "Question",
+              "name": t('manuals:faq_q2'),
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": t('manuals:faq_a2')
+              }
+            },
+            {
+              "@type": "Question",
+              "name": t('manuals:faq_q3'),
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": t('manuals:faq_a3')
+              }
+            }
+          ]
+        }}
+      />
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       {/* Header with back */}
@@ -152,6 +182,40 @@ export function ManualsScreen({ setActiveTab }: { setActiveTab: (tab: string) =>
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* FAQ section for AEO/GEO */}
+      <section className="bg-surface-low rounded-2xl p-7 shadow-elevation-1 space-y-6 mt-8">
+        <h2 className="font-headline text-xl font-black uppercase tracking-tight text-primary flex items-center gap-3">
+          <span className="w-6 h-[2px] bg-primary rounded-full"></span>
+          {t('manuals:faq_title')}
+        </h2>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="font-headline text-lg font-bold text-on-surface">
+              {t('manuals:faq_q1')}
+            </h3>
+            <p className="font-body text-sm text-surface-variant leading-relaxed">
+              {t('manuals:faq_a1')}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-headline text-lg font-bold text-on-surface">
+              {t('manuals:faq_q2')}
+            </h3>
+            <p className="font-body text-sm text-surface-variant leading-relaxed">
+              {t('manuals:faq_a2')}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-headline text-lg font-bold text-on-surface">
+              {t('manuals:faq_q3')}
+            </h3>
+            <p className="font-body text-sm text-surface-variant leading-relaxed">
+              {t('manuals:faq_a3')}
+            </p>
+          </div>
         </div>
       </section>
     </div>

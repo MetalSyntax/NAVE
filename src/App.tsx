@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { TopNav } from './components/layout/TopNav';
 import { BottomNav } from './components/layout/BottomNav';
 import { DashboardScreen } from './views/Dashboard';
@@ -22,10 +23,12 @@ import { LoadingScreen } from './components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
   const { settings, isLoading, refresh } = useSettings();
   const { i18n } = useTranslation();
   const { needsUpdate, isChecking, justChecked, acceptUpdate, dismissUpdate, checkForUpdate } = usePwaUpdate();
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   React.useEffect(() => {
     if (settings?.language && i18n.language !== settings.language) {
@@ -37,24 +40,38 @@ export default function App() {
 
   // Mostrar onboarding en la primera ejecución hasta que se complete.
   if (settings && !settings.onboardingComplete) {
-    return <OnboardingScreen onComplete={refresh} />;
+    return (
+      <OnboardingScreen
+        onComplete={async (initialTab?: string) => {
+          await refresh();
+          if (initialTab) navigate(`/${initialTab}`);
+        }}
+      />
+    );
   }
 
+  // Determinar activeTab basado en el pathname actual
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path === '/' || path === '/dashboard') return 'dashboard';
+    if (path === '/logs') return 'logs';
+    if (path === '/routes') return 'routes';
+    if (path === '/maintenance') return 'maintenance';
+    if (path === '/vehicle' || path === '/profile') return 'profile';
+    if (path === '/manuals') return 'manuals';
+    if (path === '/settings') return 'settings';
+    if (path === '/terms') return 'terms';
+    if (path === '/privacy') return 'privacy';
+    return 'dashboard';
+  };
+
+  const activeTab = getActiveTab();
   const isLegalTab = activeTab === 'terms' || activeTab === 'privacy';
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <DashboardScreen setActiveTab={setActiveTab} />;
-      case 'logs': return <LogsScreen />;
-      case 'routes': return <LogsScreen initialTab="routes" />;
-      case 'maintenance': return <MaintenanceScreen />;
-      case 'profile': return <VehicleScreen setActiveTab={setActiveTab} />;
-      case 'manuals': return <ManualsScreen setActiveTab={setActiveTab} />;
-      case 'settings': return <SettingsScreen setActiveTab={setActiveTab} onCheckUpdate={checkForUpdate} isCheckingUpdate={isChecking} justChecked={justChecked} />;
-      case 'terms': return <TermsScreen setActiveTab={setActiveTab} />;
-      case 'privacy': return <PrivacyScreen setActiveTab={setActiveTab} />;
-      default: return <DashboardScreen setActiveTab={setActiveTab} />;
-    }
+  const setActiveTab = (tab: string) => {
+    if (tab === 'dashboard') navigate('/');
+    else if (tab === 'profile') navigate('/vehicle');
+    else navigate(`/${tab}`);
   };
 
   return (
@@ -62,7 +79,20 @@ export default function App() {
       <TopNav setActiveTab={setActiveTab} />
 
       <main className="pt-20 px-4 md:px-6 max-w-5xl mx-auto">
-        {renderContent()}
+        <Routes>
+          <Route path="/" element={<DashboardScreen setActiveTab={setActiveTab} />} />
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
+          <Route path="/logs" element={<LogsScreen />} />
+          <Route path="/routes" element={<LogsScreen initialTab="routes" />} />
+          <Route path="/maintenance" element={<MaintenanceScreen />} />
+          <Route path="/vehicle" element={<VehicleScreen setActiveTab={setActiveTab} />} />
+          <Route path="/profile" element={<Navigate to="/vehicle" replace />} />
+          <Route path="/manuals" element={<ManualsScreen setActiveTab={setActiveTab} />} />
+          <Route path="/settings" element={<SettingsScreen setActiveTab={setActiveTab} onCheckUpdate={checkForUpdate} isCheckingUpdate={isChecking} justChecked={justChecked} />} />
+          <Route path="/terms" element={<TermsScreen setActiveTab={setActiveTab} />} />
+          <Route path="/privacy" element={<PrivacyScreen setActiveTab={setActiveTab} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       {!isLegalTab && <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />}
@@ -70,3 +100,4 @@ export default function App() {
     </div>
   );
 }
+

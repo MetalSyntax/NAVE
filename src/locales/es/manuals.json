@@ -9,5 +9,12 @@
   "empty": "No hay manuales guardados",
   "btn_view": "Ver",
   "btn_download": "Descargar",
-  "confirm_delete": "¿Eliminar este manual?"
+  "confirm_delete": "¿Eliminar este manual?",
+  "faq_title": "Preguntas Frecuentes sobre el Mantenimiento de tu Moto",
+  "faq_q1": "¿Cómo subir y consultar el manual de mi moto?",
+  "faq_a1": "Puedes subir el manual en formato PDF o imagen desde esta sección. Todo el contenido se guardará directamente en tu navegador mediante IndexedDB, por lo que podrás consultarlo sin conexión a internet en cualquier momento.",
+  "faq_q2": "¿Dónde se guardan los archivos que subo a NAVE?",
+  "faq_a2": "Los archivos se almacenan localmente en el almacenamiento privado de tu navegador. No enviamos tus manuales, fotos ni bitácoras a ningún servidor externo. Tus datos te pertenecen.",
+  "faq_q3": "¿Qué pasa si borro los datos de navegación de mi dispositivo?",
+  "faq_a3": "Dado que NAVE guarda la información localmente, borrar las cookies o los datos almacenados del sitio en la configuración del navegador podría eliminar los manuales y registros guardados. Te recomendamos hacer respaldos periódicos desde la sección de Ajustes."
 }

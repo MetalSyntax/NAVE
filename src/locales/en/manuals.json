@@ -9,5 +9,12 @@
   "empty": "No manuals saved yet",
   "btn_view": "View",
   "btn_download": "Download",
-  "confirm_delete": "Delete this manual?"
+  "confirm_delete": "Delete this manual?",
+  "faq_title": "Frequently Asked Questions about Motorcycle Maintenance",
+  "faq_q1": "How can I upload and read my motorcycle manual?",
+  "faq_a1": "You can upload your manual in PDF or image format from this section. All content is saved directly to your browser via IndexedDB, allowing you to access it offline at any time.",
+  "faq_q2": "Where are the files I upload to NAVE stored?",
+  "faq_a2": "Files are stored locally in your browser's private storage. We do not send your manuals, photos, or logs to any external server. Your data belongs to you.",
+  "faq_q3": "What happens if I clear my browser browsing data?",
+  "faq_a3": "Since NAVE stores information locally, clearing cookies or site storage in your browser settings could delete your manuals and logs. We recommend performing regular data exports in Settings."
 }

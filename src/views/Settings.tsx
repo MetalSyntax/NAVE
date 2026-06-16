@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Moon, Sun, Save, Camera, Bell, Shield, Gauge, Database, BellOff, ChevronRight, Download, Trash2, FileText, Zap, User, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/ui/SEO';
 import { useSettings } from '../hooks/useSettings';
 import { useNotifications } from '../hooks/useNotifications';
 import { Toast, useToast } from '../components/ui/Toast';
@@ -169,9 +169,7 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-      <Helmet>
-        <title>{t('common:nav_settings')} | NAVE</title>
-      </Helmet>
+      <SEO titleKey="settings_title" descKey="settings_desc" />
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <header className="space-y-1">
@@ -221,6 +219,26 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
               </div>
               <div className={`relative w-12 h-6 rounded-full p-1 transition-colors duration-200 ${settings?.theme === 'dark' ? 'bg-primary' : 'bg-outline'}`}>
                 <div className={`w-4 h-4 bg-on-primary rounded-full transition-transform duration-200 shadow-elevation-1 ${settings?.theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`} />
+              </div>
+            </button>
+
+            <button
+              onClick={() => updateSettings({ expertMode: !settings?.expertMode })}
+              className="w-full flex items-center justify-between p-3 bg-surface-low rounded-2xl hover:bg-surface-high transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Gauge className={`w-4 h-4 flex-shrink-0 ${settings?.expertMode ? 'text-primary' : 'text-surface-variant'}`} />
+                <div className="min-w-0 text-left">
+                  <span className="font-headline text-sm font-bold uppercase block">
+                    {t('common:expert_mode_label')}
+                  </span>
+                  <span className="text-[10px] text-surface-variant font-medium leading-tight block">
+                    {t('common:expert_mode_desc')}
+                  </span>
+                </div>
+              </div>
+              <div className={`relative w-12 h-6 rounded-full p-1 transition-colors duration-200 flex-shrink-0 ml-3 ${settings?.expertMode ? 'bg-primary' : 'bg-outline'}`}>
+                <div className={`w-4 h-4 bg-on-primary rounded-full transition-transform duration-200 shadow-elevation-1 ${settings?.expertMode ? 'translate-x-6' : 'translate-x-0'}`} />
               </div>
             </button>
 

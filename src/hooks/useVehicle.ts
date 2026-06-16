@@ -17,7 +17,7 @@ export function useVehicle() {
       const data = await getAll<VehicleData>('vehicle');
       setVehicles(data);
       if (data.length > 0) {
-        let active = data.find(v => v.id === activeVehicleId);
+        let active = data.find(v => v.id == activeVehicleId);
         if (!active) active = data[0];
         setVehicle(active);
       }

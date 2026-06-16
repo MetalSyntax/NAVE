@@ -14,7 +14,7 @@ export function useLogs() {
     try {
       const data = await getAll<LogEntry>('logs');
       // Filter by active vehicle id (or legacy logs without vehicleId)
-      const filtered = data.filter(log => !log.vehicleId || log.vehicleId === activeVehicleId);
+      const filtered = data.filter(log => !log.vehicleId || log.vehicleId == activeVehicleId);
       filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setLogs(filtered);
     } catch (err: any) {

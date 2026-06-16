@@ -14,7 +14,7 @@ export function useMaintenance() {
     setIsLoading(true);
     try {
       const data = await getAll<MaintenanceEntry>('maintenance');
-      const filtered = data.filter(log => !log.vehicleId || log.vehicleId === activeVehicleId);
+      const filtered = data.filter(log => !log.vehicleId || log.vehicleId == activeVehicleId);
       filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setMaintenanceLogs(filtered);
 
