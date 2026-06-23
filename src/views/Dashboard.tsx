@@ -115,12 +115,22 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
 
   const fuelStats = useMemo(() => {
     if (!vehicle?.capacidadTanque) return null;
-    const litros = Math.round((vehicle.nivelGasolina / 5) * vehicle.capacidadTanque * 10) / 10;
-    const autoRestante = Math.round(litros * vehicle.rendimientoKmL);
-    const autoTotal = Math.round(vehicle.capacidadTanque * vehicle.rendimientoKmL);
-    const fuelPct = (vehicle.nivelGasolina / 5) * 100;
+    const rendimiento = vehicle.rendimientoKmL > 0 ? vehicle.rendimientoKmL : 1;
+    const odoNow = Math.max(stats.totalDist, vehicle.kilometrajeActual || 0);
+    let litros: number;
+    if (logs.length > 0) {
+      // Use the most recent fuel log as baseline, subtract consumption since then
+      const lastLog = [...logs].sort((a, b) => b.odo - a.odo)[0];
+      const distSince = Math.max(0, odoNow - lastLog.odo);
+      litros = Math.max(0, Math.round((lastLog.fuel - distSince / rendimiento) * 10) / 10);
+    } else {
+      litros = Math.round((vehicle.nivelGasolina / 5) * vehicle.capacidadTanque * 10) / 10;
+    }
+    const autoRestante = Math.round(litros * rendimiento);
+    const autoTotal = Math.round(vehicle.capacidadTanque * rendimiento);
+    const fuelPct = Math.min(100, (litros / vehicle.capacidadTanque) * 100);
     return { litros, autoRestante, autoTotal, fuelPct };
-  }, [vehicle]);
+  }, [vehicle, logs, stats.totalDist]);
 
   const handleSaveKm = async () => {
     if (!vehicle) return;
@@ -185,16 +195,19 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
   const recentActivity = useMemo(() => {
     const l = logs.map(x => ({ id: `L-${x.id}`, title: `${t('dashboard:fuel_refill')} — ${x.fuel}L`, date: new Date(x.date), type: 'log' }));
     const m = maintenanceLogs.map(x => ({ id: `M-${x.id}`, title: x.type, date: new Date(x.date), type: 'maint' }));
-    return [...l, ...m]
+    const r = routes
+      .filter(x => x.status === 'completed')
+      .map(x => ({ id: `R-${x.id}`, title: `${t('dashboard:summary_routes')} — ${(x.distance || 0).toLocaleString()} km`, date: new Date(x.endDate || x.startDate), type: 'route' }));
+    return [...l, ...m, ...r]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, 3)
+      .slice(0, 5)
       .map((item, index) => ({
         id: `0${index + 1}`,
         title: item.title,
-        sub: `${item.type === 'maint' ? t('dashboard:maint_label') : t('dashboard:telemetry_label')} · ${item.date.toLocaleDateString()}`,
+        sub: `${item.type === 'maint' ? t('dashboard:maint_label') : item.type === 'route' ? t('dashboard:summary_routes') : t('dashboard:telemetry_label')} · ${item.date.toLocaleDateString()}`,
         type: item.type,
       }));
-  }, [logs, maintenanceLogs, t]);
+  }, [logs, maintenanceLogs, routes, t]);
 
   const currentOdo = Math.max(stats.totalDist, vehicle?.kilometrajeActual || 0);
   const alerts = useMemo(() => computeServiceAlerts(schedules, currentOdo), [schedules, currentOdo]);
@@ -211,11 +224,12 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
     sendNotification(t('dashboard:alerts_title'), `${svcLabel(top.schedule.type)} — ${detail}`, 'service-alerts');
   }, [activeAlerts]);
 
-  const baseLogCreated = useRef(false);
+  const BASE_LOG_KEY = `nave_base_log_v${vehicle?.id ?? 0}`;
   useEffect(() => {
-    if (baseLogCreated.current || logsLoading || !vehicle || logs.length > 0) return;
+    if (logsLoading || !vehicle || logs.length > 0) return;
     if (!vehicle.nivelGasolina || vehicle.nivelGasolina === 0) return;
-    baseLogCreated.current = true;
+    if (localStorage.getItem(BASE_LOG_KEY)) return;
+    localStorage.setItem(BASE_LOG_KEY, '1');
     const liters = vehicle.capacidadTanque
       ? Math.round((vehicle.nivelGasolina / 5) * vehicle.capacidadTanque * 10) / 10
       : vehicle.nivelGasolina * 2;
@@ -867,11 +881,13 @@ export function DashboardScreen({ setActiveTab }: { setActiveTab: (tab: string) 
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      item.type === 'maint' ? 'bg-primary/10' : 'bg-secondary/10'
+                      item.type === 'maint' ? 'bg-primary/10' : item.type === 'route' ? 'bg-secondary/10' : 'bg-secondary/10'
                     }`}>
                       {item.type === 'maint'
                         ? <Wrench className="w-4 h-4 text-primary" />
-                        : <Fuel className="w-4 h-4 text-secondary" />
+                        : item.type === 'route'
+                          ? <Route className="w-4 h-4 text-secondary" />
+                          : <Fuel className="w-4 h-4 text-secondary" />
                       }
                     </div>
                     <div>
