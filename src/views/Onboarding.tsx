@@ -10,10 +10,10 @@ const FUEL_HEIGHTS = ['h-5', 'h-7', 'h-9', 'h-11', 'h-14'];
 const FUEL_LABELS: Record<number, string> = { 1: 'Crítico', 2: 'Bajo', 3: 'Medio', 4: 'Alto', 5: 'Lleno' };
 
 const MOTO_TYPES = [
-  { id: 'urban',  emoji: '🏙',  label: 'Urbana / Utilitaria',  sub: '50 – 125 cc',  kmL: 42 },
-  { id: 'mid',    emoji: '🛣',  label: 'Mediana / Trabajo',     sub: '150 – 250 cc', kmL: 28 },
-  { id: 'sport',  emoji: '⚡',  label: 'Deportiva / Potente',   sub: '300 cc o más', kmL: 18 },
-  { id: 'manual', emoji: '✏️', label: 'Sé el dato exacto',     sub: null,           kmL: null },
+  { id: 'urban',  emoji: '🏙',  label: 'Urbana / Utilitaria',  sub: '50 – 125 cc',  kmL: 42, tank: 5.5 },
+  { id: 'mid',    emoji: '🛣',  label: 'Mediana / Trabajo',     sub: '150 – 250 cc', kmL: 28, tank: 11 },
+  { id: 'sport',  emoji: '⚡',  label: 'Deportiva / Potente',   sub: '300 cc o más', kmL: 18, tank: 15 },
+  { id: 'manual', emoji: '✏️', label: 'Sé el dato exacto',     sub: null,           kmL: null, tank: null },
 ] as const;
 
 type MotoTypeId = typeof MOTO_TYPES[number]['id'];
@@ -48,6 +48,8 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
   const [fuelLevel, setFuelLevel] = useState(3);
   const [motoType, setMotoType] = useState<MotoTypeId | null>(null);
   const [efficiency, setEfficiency] = useState('35');
+  const [tankCapacity, setTankCapacity] = useState('');
+  const [oilIntervalInput, setOilIntervalInput] = useState('3000');
 
   const selectedBrand = VENEZUELA_MOTORCYCLES.find(b => b.brand === brand);
   const currentIndex = STEP_INDEX[step];
@@ -59,6 +61,7 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
     setMotoType(id);
     const preset = MOTO_TYPES.find(t => t.id === id);
     if (preset?.kmL) setEfficiency(String(preset.kmL));
+    if (preset?.tank) setTankCapacity(String(preset.tank));
   };
 
   const handleFinish = async (initialTab?: string) => {
@@ -67,6 +70,8 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
       const vehicleId = Date.now();
       const now = new Date().toISOString();
       const odoNum = parseInt(odo) || 0;
+
+      const oilIntervalNum = parseInt(oilIntervalInput) || 3000;
 
       await update('vehicle', {
         id: vehicleId,
@@ -81,7 +86,7 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
         rendimientoKmL: parseFloat(efficiency) || 35,
         kilometrajeActual: odoNum,
         kilometrajeUltimoServicio: 0,
-        kilometrajeProximoServicio: odoNum + 3000,
+        kilometrajeProximoServicio: odoNum + oilIntervalNum,
         fechaUltimoServicio: now,
         fechaProximoServicio: now,
         aseguradora: '',
@@ -89,6 +94,7 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
         vigenciaSeguro: now,
         categoria: selectedBrand?.category || 'PASEO',
         identificadorUnidad: alias.trim() || (brand ? `${brand} ${year}` : 'Mi moto'),
+        capacidadTanque: parseFloat(tankCapacity) || undefined,
         creadoEn: now,
         actualizadoEn: now,
       });
@@ -106,6 +112,7 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
       await update('settings', {
         ...(currentSettings ?? { id: 1, oilInterval: 3000, language: 'es', theme: 'dark' as const, distanceUnits: 'km' }),
         id: 1,
+        oilInterval: parseInt(oilIntervalInput) || 3000,
         initialized: true,
         onboardingComplete: true,
         activeVehicleId: vehicleId,
@@ -356,6 +363,36 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
                 <p className="text-[11px] text-surface-variant mt-1 leading-snug">Ej: 35 = recorre 35 km con 1 litro</p>
               </div>
             )}
+
+            {/* Capacidad del tanque */}
+            <div className="space-y-1 animate-in fade-in duration-300">
+              <label className={labelCls}>¿Cuántos litros caben en el tanque? (sin la reserva)</label>
+              <input
+                value={tankCapacity}
+                onChange={e => setTankCapacity(e.target.value)}
+                type="number"
+                min="1"
+                step="0.5"
+                placeholder={motoType && motoType !== 'manual' ? String(MOTO_TYPES.find(t => t.id === motoType)?.tank ?? '') : '10'}
+                className={inputCls}
+              />
+              <p className="text-[11px] text-surface-variant mt-1 leading-snug">Lo dice el manual. Si no lo sabes, déjalo en blanco.</p>
+            </div>
+
+            {/* Intervalo de cambio de aceite */}
+            <div className="space-y-1">
+              <label className={labelCls}>¿Cada cuántos KM cambias el aceite?</label>
+              <input
+                value={oilIntervalInput}
+                onChange={e => setOilIntervalInput(e.target.value)}
+                type="number"
+                min="500"
+                step="500"
+                placeholder="3000"
+                className={inputCls}
+              />
+              <p className="text-[11px] text-surface-variant mt-1 leading-snug">Normalmente 2.000–4.000 km según la marca</p>
+            </div>
 
             {/* Nivel de gasolina */}
             <div className="space-y-2">

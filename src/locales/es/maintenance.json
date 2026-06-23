@@ -38,6 +38,7 @@
   "schedule_overdue": "Vencido",
   "schedule_soon": "Pronto",
   "schedule_ok": "Al día",
+  "schedule_status": "Estado",
   "schedule_custom_ph": "¿Qué servicio? (ej: Filtro de aire)",
   "schedule_none": "No tienes recordatorios configurados aún",
   "schedule_confirm_delete": "¿Eliminar este recordatorio?",

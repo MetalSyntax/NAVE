@@ -48,5 +48,7 @@
   "create_model": "Modelo",
   "create_select_model": "Selecciona un modelo",
   "create_blank": "Otra / No está en la lista",
-  "btn_create": "Agregar"
+  "btn_create": "Agregar",
+  "label_tank_capacity": "Capacidad del tanque (litros)",
+  "hint_tank_capacity": "Sin contar la reserva. Lo indica el manual de tu moto."
 }

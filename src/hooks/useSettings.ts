@@ -37,6 +37,9 @@ export function useSettings() {
 
   useEffect(() => {
     fetchData();
+    const onUserUpdated = () => fetchData();
+    window.addEventListener('nave:user-updated', onUserUpdated);
+    return () => window.removeEventListener('nave:user-updated', onUserUpdated);
   }, [fetchData]);
 
   const updateSettings = async (newSettings: Partial<SettingsData>) => {
@@ -55,6 +58,7 @@ export function useSettings() {
     const updated = { ...current, ...newUserData };
     await update('user', updated);
     setUser(updated);
+    window.dispatchEvent(new CustomEvent('nave:user-updated'));
   };
 
   return { settings, user, isLoading, updateSettings, updateUser, refresh: fetchData };

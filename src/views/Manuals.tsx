@@ -7,6 +7,7 @@ import { arrayBufferToUrl } from '../utils/fileUtils';
 import { ManualEntry } from '../db/database';
 import { Toast, useToast } from '../components/ui/Toast';
 import { LoadingScreen, Spinner } from '../components/ui/Spinner';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -21,6 +22,7 @@ export function ManualsScreen({ setActiveTab }: { setActiveTab: (tab: string) =>
 
   const [title, setTitle] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [deleteManualId, setDeleteManualId] = useState<number | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,13 +56,15 @@ export function ManualsScreen({ setActiveTab }: { setActiveTab: (tab: string) =>
     URL.revokeObjectURL(url);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(t('manuals:confirm_delete'))) return;
+  const handleDelete = async () => {
+    if (deleteManualId === null) return;
     try {
-      await removeManual(id);
+      await removeManual(deleteManualId);
       showToast(t('common:saved_success'), 'success');
     } catch {
       showToast(t('common:error_generic'), 'error');
+    } finally {
+      setDeleteManualId(null);
     }
   };
 
@@ -105,6 +109,16 @@ export function ManualsScreen({ setActiveTab }: { setActiveTab: (tab: string) =>
         }}
       />
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+
+      <ConfirmModal
+        isOpen={deleteManualId !== null}
+        title={t('manuals:confirm_delete_title')}
+        message={t('manuals:confirm_delete')}
+        confirmText={t('common:btn_delete')}
+        cancelText={t('common:btn_cancel')}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteManualId(null)}
+      />
 
       {/* Header with back */}
       <div className="flex items-center gap-3">
@@ -176,7 +190,7 @@ export function ManualsScreen({ setActiveTab }: { setActiveTab: (tab: string) =>
                 <button onClick={() => handleDownload(m)} title={t('manuals:btn_download')} className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-secondary hover:bg-surface-high transition-colors">
                   <Download className="w-4 h-4" />
                 </button>
-                <button onClick={() => handleDelete(m.id!)} className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors">
+                <button onClick={() => setDeleteManualId(m.id!)} className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-surface-variant hover:text-error hover:bg-error-container/20 transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

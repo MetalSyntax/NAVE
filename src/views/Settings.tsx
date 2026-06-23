@@ -6,6 +6,7 @@ import { useSettings } from '../hooks/useSettings';
 import { useNotifications } from '../hooks/useNotifications';
 import { Toast, useToast } from '../components/ui/Toast';
 import { Spinner, LoadingScreen } from '../components/ui/Spinner';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { toArrayBuffer, arrayBufferToUrl } from '../utils/fileUtils';
 import { getAll, clear } from '../db/database';
 
@@ -22,18 +23,18 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
   const { permission, isSupported, requestPermission } = useNotifications();
   const { toast, showToast, hideToast } = useToast();
 
-  const [formData, setFormData] = useState({ name: '', email: '', oilInterval: '3000' });
+  const [formData, setFormData] = useState({ name: '', email: '' });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [storageInfo, setStorageInfo] = useState<{ used: number; quota: number } | null>(null);
   const [requestingNotif, setRequestingNotif] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0);
 
   useEffect(() => {
     if (user) {
       setFormData(prev => ({ ...prev, name: user.name, email: user.email || '' }));
       if (user.avatar) setAvatarPreview(arrayBufferToUrl(user.avatar));
     }
-    if (settings) setFormData(prev => ({ ...prev, oilInterval: settings.oilInterval.toString() }));
   }, [user, settings]);
 
   useEffect(() => {
@@ -63,7 +64,6 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
     setIsSubmitting(true);
     try {
       await updateUser({ name: formData.name, email: formData.email });
-      await updateSettings({ oilInterval: parseInt(formData.oilInterval) || 3000 });
       showToast(t('common:saved_success'), 'success');
     } catch {
       showToast(t('common:error_generic'), 'error');
@@ -139,10 +139,9 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
   };
 
   const handleDeleteAll = async () => {
-    if (!confirm('¿Borrar TODOS los datos? Esta acción es irreversible y eliminará vehículos, registros y configuraciones.')) return;
-    if (!confirm('Segunda confirmación: ¿seguro que deseas continuar? No se puede deshacer.')) return;
     try {
       await Promise.all(['logs', 'maintenance', 'vehicle', 'settings', 'user'].map(s => clear(s)));
+      setDeleteStep(0);
       showToast('Datos eliminados. Reiniciando...', 'success');
       setTimeout(() => window.location.reload(), 1500);
     } catch {
@@ -171,6 +170,27 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <SEO titleKey="settings_title" descKey="settings_desc" />
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+
+      {/* Primera confirmación de borrado */}
+      <ConfirmModal
+        isOpen={deleteStep === 1}
+        title="¿Borrar todos los datos?"
+        message="Esta acción es irreversible. Se eliminarán todos los vehículos, registros de gasolina, mantenimientos y configuraciones. No hay forma de recuperarlos."
+        confirmText="Sí, continuar"
+        cancelText="Cancelar"
+        onConfirm={() => setDeleteStep(2)}
+        onCancel={() => setDeleteStep(0)}
+      />
+      {/* Segunda confirmación de borrado */}
+      <ConfirmModal
+        isOpen={deleteStep === 2}
+        title="Confirmación final"
+        message="Segunda y última confirmación. Una vez borrado no se puede deshacer. ¿Seguro que deseas continuar?"
+        confirmText="Borrar todo"
+        cancelText="Cancelar"
+        onConfirm={handleDeleteAll}
+        onCancel={() => setDeleteStep(0)}
+      />
 
       <header className="space-y-1">
         <h2 className="font-headline text-4xl font-black uppercase tracking-tighter italic">{t('common:nav_settings')}</h2>
@@ -318,21 +338,6 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
               </div>
             </div>
 
-            <div className="pt-4 border-t border-outline-variant/30">
-              <div className="space-y-1 max-w-xs">
-                <label className={labelCls}>{t('maintenance:interval_configured')} (KM)</label>
-                <div className="relative">
-                  <Gauge className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-variant" />
-                  <input
-                    value={formData.oilInterval}
-                    onChange={e => setFormData({...formData, oilInterval: e.target.value})}
-                    className="w-full bg-surface-high border-0 border-b-2 border-outline-variant focus:border-secondary focus:outline-none pl-11 pr-4 py-3 font-headline text-2xl font-black transition-colors"
-                    type="number"
-                  />
-                </div>
-              </div>
-            </div>
-
             <div className="pt-2">
               <button
                 disabled={isSubmitting}
@@ -428,7 +433,7 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
                 </button>
                 <button
                   type="button"
-                  onClick={handleDeleteAll}
+                  onClick={() => setDeleteStep(1)}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-surface-low rounded-2xl text-[10px] font-bold uppercase tracking-wider text-error hover:bg-error-container hover:text-on-error-container transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />

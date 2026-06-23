@@ -38,6 +38,7 @@
   "schedule_overdue": "Overdue",
   "schedule_soon": "Soon",
   "schedule_ok": "On track",
+  "schedule_status": "Status",
   "schedule_custom_ph": "What service? (e.g. Air filter)",
   "schedule_none": "No reminders configured yet",
   "schedule_confirm_delete": "Delete this reminder?",

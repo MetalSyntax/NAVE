@@ -1,5 +1,5 @@
 export const DB_NAME = 'appDatabase';
-export const DB_VERSION = 6; // v6: adds 'manuals' store (biblioteca de manuales PDF)
+export const DB_VERSION = 7; // v7: adds capacidadTanque to VehicleData
 
 export interface LogEntry {
   id?: number;
@@ -94,6 +94,7 @@ export interface VehicleData {
   categoria?: string;
   identificadorUnidad?: string;
   estadoSistema?: string;
+  capacidadTanque?: number;
   creadoEn: string;
   actualizadoEn: string;
 }
@@ -297,6 +298,15 @@ export const seedDefaults = async () => {
     if (!settings.initialized && settings.onboardingComplete) {
       await update('settings', { ...settings, initialized: true });
       await seedSchedulesForVehicle1();
+    }
+
+    // Limpieza: si el activeVehicleId es un timestamp real (creado por onboarding),
+    // eliminar la moto placeholder con ID=1 que pudo haber quedado de versiones anteriores.
+    if (settings.activeVehicleId && settings.activeVehicleId > 1_000_000_000) {
+      const legacyVehicle = await getById<VehicleData>('vehicle', 1);
+      if (legacyVehicle) {
+        await remove('vehicle', 1);
+      }
     }
   } catch (error) {
     console.error('Error seeding defaults:', error);

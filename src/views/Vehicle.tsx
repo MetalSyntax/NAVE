@@ -82,6 +82,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
         categoria: vehicle.categoria || '',
         identificadorUnidad: vehicle.identificadorUnidad || '',
         estadoSistema: vehicle.estadoSistema || '',
+        capacidadTanque: vehicle.capacidadTanque?.toString() || '',
       });
 
       if (vehicle.fotoPortada) {
@@ -146,6 +147,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
           categoria: formData.categoria,
           identificadorUnidad: formData.identificadorUnidad,
           estadoSistema: formData.estadoSistema,
+          capacidadTanque: parseFloat(formData.capacidadTanque) || undefined,
           actualizadoEn: new Date().toISOString(),
         };
         if (formData._newPhoto) payload.fotoPortada = formData._newPhoto;
@@ -290,9 +292,6 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
     );
   }
 
-  const isDueForService =
-    parseInt(formData.kilometrajeActual) >= parseInt(formData.kilometrajeProximoServicio) * 0.95;
-
   const fuelLevel = parseInt(formData.nivelGasolina) || 1;
 
   return (
@@ -301,16 +300,6 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <form onSubmit={handleSubmit} className="space-y-6 pb-12">
-
-        {/* Service Due Alert */}
-        {isDueForService && (
-          <div className="flex items-center gap-3 p-4 bg-error-container text-on-error-container rounded-2xl shadow-elevation-1 animate-in slide-in-from-top-2 duration-300">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-            <span className="font-headline font-bold uppercase text-sm tracking-wide">
-              {t('vehicle:service_due_alert')}
-            </span>
-          </div>
-        )}
 
         {/* ── Multi-Vehicle Switcher ── */}
         <section className="bg-surface-container rounded-2xl p-4 shadow-elevation-1">
@@ -507,6 +496,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
             {[
               { name: 'kilometrajeActual', label: t('vehicle:current_mileage'), hint: t('vehicle:hint_mileage') },
               { name: 'rendimientoKmL', label: t('vehicle:fuel_efficiency'), step: '0.1', hint: t('vehicle:hint_efficiency') },
+              { name: 'capacidadTanque', label: t('vehicle:label_tank_capacity'), step: '0.5', hint: t('vehicle:hint_tank_capacity') },
               { name: 'kilometrajeUltimoServicio', label: t('vehicle:label_km_last_service') },
               { name: 'kilometrajeProximoServicio', label: t('vehicle:label_km_next_service') },
             ].map(({ name, label, step, hint }: any) => (

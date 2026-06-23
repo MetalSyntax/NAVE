@@ -81,6 +81,16 @@ export function useRoutes() {
     }
   };
 
+  const addRoute = async (entry: Omit<RouteEntry, 'id' | 'vehicleId'>) => {
+    try {
+      await add('routes', { ...entry, vehicleId: activeVehicleId });
+      await fetchRoutes();
+    } catch (err: any) {
+      setError(err.message || 'Failed to add route');
+      throw err;
+    }
+  };
+
   const removeRoute = async (id: number) => {
     try {
       await remove('routes', id);
@@ -98,6 +108,7 @@ export function useRoutes() {
     error,
     startRoute,
     finishRoute,
+    addRoute,
     updateRoute,
     removeRoute,
     refreshRoutes: fetchRoutes,

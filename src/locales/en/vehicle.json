@@ -48,5 +48,7 @@
   "create_model": "Model",
   "create_select_model": "Select a model",
   "create_blank": "Other / Not in the list",
-  "btn_create": "Add"
+  "btn_create": "Add",
+  "label_tank_capacity": "Tank capacity (liters)",
+  "hint_tank_capacity": "Excluding reserve. Check your bike's manual."
 }
