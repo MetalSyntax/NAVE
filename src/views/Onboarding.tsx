@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Bike, User, Gauge, CheckCircle2, ChevronRight, ArrowRight, Fuel, MapPin, Wrench } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Bike, User, Gauge, CheckCircle2, ChevronRight, ArrowRight, Fuel, MapPin, Wrench, CheckCircle } from 'lucide-react';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { Spinner } from '../components/ui/Spinner';
 import { VENEZUELA_MOTORCYCLES } from '../data/venezuelaMotorcycles';
@@ -17,6 +17,13 @@ const MOTO_TYPES = [
 ] as const;
 
 type MotoTypeId = typeof MOTO_TYPES[number]['id'];
+
+function ccToMotoType(cc?: number): MotoTypeId | null {
+  if (!cc) return null;
+  if (cc <= 125) return 'urban';
+  if (cc <= 250) return 'mid';
+  return 'sport';
+}
 
 const STEPS = ['welcome', 'profile', 'vehicle', 'status', 'done'] as const;
 type Step = typeof STEPS[number];
@@ -50,6 +57,12 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
   const [efficiency, setEfficiency] = useState('35');
   const [tankCapacity, setTankCapacity] = useState('');
   const [oilIntervalInput, setOilIntervalInput] = useState('3000');
+  // tracks whether step-4 values were auto-filled from scraped model data
+  const [fromModel, setFromModel] = useState({ type: false, tank: false, rend: false });
+  // scraped photos for selected model
+  const [motoImages, setMotoImages] = useState<string[]>([]);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const imagesLoadedRef = useRef(false);
 
   const selectedBrand = VENEZUELA_MOTORCYCLES.find(b => b.brand === brand);
   const currentIndex = STEP_INDEX[step];
@@ -59,9 +72,41 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
 
   const handleSelectMotoType = (id: MotoTypeId) => {
     setMotoType(id);
+    setFromModel(p => ({ ...p, type: false }));
     const preset = MOTO_TYPES.find(t => t.id === id);
-    if (preset?.kmL) setEfficiency(String(preset.kmL));
-    if (preset?.tank) setTankCapacity(String(preset.tank));
+    if (preset?.kmL && !fromModel.rend) setEfficiency(String(preset.kmL));
+    if (preset?.tank && !fromModel.tank) setTankCapacity(String(preset.tank));
+  };
+
+  const handleSelectModel = (modelName: string) => {
+    setModel(modelName);
+    setMotoImages([]);
+    setSelectedPhoto(null);
+    import('../data/motorcycleImages.gen').then(({ MOTO_IMAGES }) => {
+      const imgs = MOTO_IMAGES[modelName] ?? [];
+      setMotoImages(imgs);
+      if (imgs.length > 0) setSelectedPhoto(imgs[0]);
+    });
+    const mData = selectedBrand?.models.find(m => m.name === modelName);
+    if (!mData) return;
+    const hints = { type: false, tank: false, rend: false };
+    const derived = ccToMotoType(mData.cc);
+    if (derived) {
+      setMotoType(derived);
+      hints.type = true;
+    }
+    if (mData.rendimientoKmL) {
+      setEfficiency(String(mData.rendimientoKmL));
+      hints.rend = true;
+    } else if (derived) {
+      const preset = MOTO_TYPES.find(t => t.id === derived);
+      if (preset?.kmL) setEfficiency(String(preset.kmL));
+    }
+    if (mData.tankL) {
+      setTankCapacity(String(mData.tankL));
+      hints.tank = true;
+    }
+    setFromModel(hints);
   };
 
   const handleFinish = async (initialTab?: string) => {
@@ -95,6 +140,7 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
         categoria: selectedBrand?.category || 'PASEO',
         identificadorUnidad: alias.trim() || (brand ? `${brand} ${year}` : 'Mi moto'),
         capacidadTanque: parseFloat(tankCapacity) || undefined,
+        fotoUrl: selectedPhoto || undefined,
         creadoEn: now,
         actualizadoEn: now,
       });
@@ -252,7 +298,7 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
               <label className={labelCls}>Marca</label>
               <CustomSelect
                 value={brand}
-                onChange={v => { setBrand(v); setModel(''); }}
+                onChange={v => { setBrand(v); setModel(''); setMotoType(null); setTankCapacity(''); setEfficiency('35'); setFromModel({ type: false, tank: false, rend: false }); setMotoImages([]); setSelectedPhoto(null); }}
                 placeholder="Selecciona una marca…"
                 options={VENEZUELA_MOTORCYCLES.map(b => ({ value: b.brand, label: b.brand }))}
               />
@@ -263,10 +309,36 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
                 <label className={labelCls}>Modelo</label>
                 <CustomSelect
                   value={model}
-                  onChange={setModel}
+                  onChange={handleSelectModel}
                   placeholder="Selecciona un modelo…"
-                  options={selectedBrand.models.map(m => ({ value: m, label: m }))}
+                  options={selectedBrand.models.map(m => ({ value: m.name, label: m.name }))}
                 />
+              </div>
+            )}
+
+            {motoImages.length > 0 && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                <label className={labelCls}>Elige una foto</label>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
+                  {motoImages.map((src, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setSelectedPhoto(src)}
+                      className={`relative flex-shrink-0 w-32 h-20 rounded-xl overflow-hidden snap-start transition-all duration-150 active:scale-95 ${
+                        selectedPhoto === src ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                      {selectedPhoto === src && (
+                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                          <CheckCircle className="w-5 h-5 text-white drop-shadow" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-surface-variant leading-snug">Foto oficial del modelo · puedes cambiarla después</p>
               </div>
             )}
 
@@ -322,7 +394,14 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
 
             {/* Selector visual de tipo de moto */}
             <div className="space-y-2">
-              <label className={labelCls}>¿Qué tipo de moto es?</label>
+              <div className="flex items-center gap-2">
+                <label className={labelCls + ' mb-0'}>¿Qué tipo de moto es?</label>
+                {fromModel.type && (
+                  <span className="text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    del modelo
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {MOTO_TYPES.map(t => (
                   <button
@@ -366,17 +445,26 @@ export function OnboardingScreen({ onComplete }: OnboardingProps) {
 
             {/* Capacidad del tanque */}
             <div className="space-y-1 animate-in fade-in duration-300">
-              <label className={labelCls}>¿Cuántos litros caben en el tanque? (sin la reserva)</label>
+              <div className="flex items-center gap-2">
+                <label className={labelCls + ' mb-0'}>¿Cuántos litros caben en el tanque? (sin la reserva)</label>
+                {fromModel.tank && (
+                  <span className="text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    del fabricante
+                  </span>
+                )}
+              </div>
               <input
                 value={tankCapacity}
-                onChange={e => setTankCapacity(e.target.value)}
+                onChange={e => { setTankCapacity(e.target.value); setFromModel(p => ({ ...p, tank: false })); }}
                 type="number"
                 min="1"
                 step="0.5"
                 placeholder={motoType && motoType !== 'manual' ? String(MOTO_TYPES.find(t => t.id === motoType)?.tank ?? '') : '10'}
                 className={inputCls}
               />
-              <p className="text-[11px] text-surface-variant mt-1 leading-snug">Lo dice el manual. Si no lo sabes, déjalo en blanco.</p>
+              <p className="text-[11px] text-surface-variant mt-1 leading-snug">
+                {fromModel.tank ? 'Dato del fabricante · puedes ajustarlo si conoces el valor exacto.' : 'Lo dice el manual. Si no lo sabes, déjalo en blanco.'}
+              </p>
             </div>
 
             {/* Intervalo de cambio de aceite */}

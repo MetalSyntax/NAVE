@@ -381,44 +381,29 @@ export function LogsScreen({ initialTab = 'refills' }: { initialTab?: 'refills' 
               {t('logs:form_title')}
             </h2>
             <form className="grid grid-cols-1 md:grid-cols-12 gap-5 bg-surface-low rounded-xl p-7 shadow-elevation-1" onSubmit={handleSubmitFuel}>
-              <div className="md:col-span-12 space-y-2">
-                <span className="font-label text-secondary text-[10px] font-bold tracking-[0.1rem] uppercase">
-                  {t('logs:register_mode_question', { defaultValue: '¿Cómo quieres registrar tu recorrido?' })}
-                </span>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleRegisterModeChange('odo')}
-                    className={`flex-1 flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${
-                      registerMode === 'odo'
-                        ? 'bg-primary/10 border-primary text-primary shadow-elevation-1'
-                        : 'bg-surface-high border-outline-variant/30 text-surface-variant hover:text-on-surface'
-                    }`}
-                  >
-                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${registerMode === 'odo' ? 'border-primary' : 'border-surface-variant'}`}>
-                      {registerMode === 'odo' && <span className="w-2 h-2 rounded-full bg-primary" />}
-                    </span>
-                    <span className="font-body text-sm font-semibold">
-                      {t('logs:register_mode_odo', { defaultValue: 'Escribo el kilometraje que marca el tablero' })}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRegisterModeChange('distance')}
-                    className={`flex-1 flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${
-                      registerMode === 'distance'
-                        ? 'bg-primary/10 border-primary text-primary shadow-elevation-1'
-                        : 'bg-surface-high border-outline-variant/30 text-surface-variant hover:text-on-surface'
-                    }`}
-                  >
-                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${registerMode === 'distance' ? 'border-primary' : 'border-surface-variant'}`}>
-                      {registerMode === 'distance' && <span className="w-2 h-2 rounded-full bg-primary" />}
-                    </span>
-                    <span className="font-body text-sm font-semibold">
-                      {t('logs:register_mode_distance', { defaultValue: 'Sé cuántos km recorrí desde la última carga' })}
-                    </span>
-                  </button>
-                </div>
+              <div className="md:col-span-12 flex gap-1 bg-surface-high rounded-xl p-1">
+                <button
+                  type="button"
+                  onClick={() => handleRegisterModeChange('odo')}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    registerMode === 'odo'
+                      ? 'bg-primary text-on-primary shadow-elevation-1'
+                      : 'text-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  {t('logs:register_mode_odo', { defaultValue: 'Odómetro' })}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRegisterModeChange('distance')}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    registerMode === 'distance'
+                      ? 'bg-primary text-on-primary shadow-elevation-1'
+                      : 'text-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  {t('logs:register_mode_distance', { defaultValue: 'Distancia recorrida' })}
+                </button>
               </div>
 
               {registerMode === 'odo' ? (

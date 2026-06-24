@@ -205,7 +205,7 @@ export function SettingsScreen({ setActiveTab, onCheckUpdate, isCheckingUpdate, 
             <div className="relative group mb-5">
               <div className="w-28 h-28 bg-surface-high rounded-full overflow-hidden border-2 border-primary/20">
                 <img
-                  src={avatarPreview || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=2070&auto=format&fit=crop'}
+                  src={avatarPreview || 'https://api.dicebear.com/9.x/bottts/svg?seed=nave&backgroundColor=transparent'}
                   className="w-full h-full object-cover"
                   alt="User Avatar"
                 />

@@ -1,5 +1,5 @@
 export const DB_NAME = 'appDatabase';
-export const DB_VERSION = 7; // v7: adds capacidadTanque to VehicleData
+export const DB_VERSION = 8; // v8: adds fotoUrl to VehicleData
 
 export interface LogEntry {
   id?: number;
@@ -89,6 +89,7 @@ export interface VehicleData {
   aseguradora: string;
   numeroPoliza: string;
   vigenciaSeguro: string;
+  fotoUrl?: string;         // data URI from scraped model images (takes priority over fotoPortada)
   fotoPortada?: ArrayBuffer;
   fotosAdicionales?: ArrayBuffer[];
   categoria?: string;

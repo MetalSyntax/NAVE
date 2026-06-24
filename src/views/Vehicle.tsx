@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen, ChevronDown, X, Bike } from 'lucide-react';
+import { BadgeCheck, Camera, AlertTriangle, Fuel, Save, Plus, Trash2, BookOpen, ChevronDown, X, Bike, CheckCircle, Images } from 'lucide-react';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { useTranslation } from 'react-i18next';
 import { SEO } from '../components/ui/SEO';
@@ -44,6 +44,8 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [modelImages, setModelImages] = useState<string[]>([]);
+  const [showModelPhotos, setShowModelPhotos] = useState(false);
 
   // Secciones plegables
   const [openSections, setOpenSections] = useState({ identity: true, fuel: false, insurance: false });
@@ -85,9 +87,10 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
         capacidadTanque: vehicle.capacidadTanque?.toString() || '',
       });
 
-      if (vehicle.fotoPortada) {
-        const url = arrayBufferToUrl(vehicle.fotoPortada);
-        setImagePreviewUrl(url);
+      if (vehicle.fotoUrl) {
+        setImagePreviewUrl(vehicle.fotoUrl);
+      } else if (vehicle.fotoPortada) {
+        setImagePreviewUrl(arrayBufferToUrl(vehicle.fotoPortada));
       } else {
         setImagePreviewUrl(null);
       }
@@ -101,6 +104,18 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
       }
     };
   }, [imagePreviewUrl]);
+
+  useEffect(() => {
+    const marca = vehicle?.marca ?? '';
+    const modelo = vehicle?.modelo ?? '';
+    if (marca === 'Bera' || marca === 'Empire Keeway') {
+      import('../data/motorcycleImages.gen').then(({ MOTO_IMAGES }) => {
+        setModelImages(MOTO_IMAGES[modelo] ?? []);
+      });
+    } else {
+      setModelImages([]);
+    }
+  }, [vehicle?.marca, vehicle?.modelo]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -150,7 +165,11 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
           capacidadTanque: parseFloat(formData.capacidadTanque) || undefined,
           actualizadoEn: new Date().toISOString(),
         };
-        if (formData._newPhoto) payload.fotoPortada = formData._newPhoto;
+        if (formData._newPhoto) {
+          payload.fotoPortada = formData._newPhoto;
+          payload.fotoUrl = undefined; // user-uploaded photo takes over
+        }
+        if (formData._fotoUrl !== undefined) payload.fotoUrl = formData._fotoUrl;
         await updateVehicle(payload);
         showToast(t('common:saved_success'), 'success');
       }
@@ -176,7 +195,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
         ? undefined
         : {
             marca: createBrand,
-            modelo: createModel || selectedBrand?.models[0] || '',
+            modelo: createModel || selectedBrand?.models[0]?.name || '',
             anio: parseInt(createYear) || new Date().getFullYear(),
             categoria: selectedBrand?.category || 'PASEO',
           };
@@ -243,7 +262,7 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
               value={createModel}
               onChange={setCreateModel}
               placeholder={t('vehicle:create_select_model')}
-              options={selectedBrand.models.map(m => ({ value: m, label: m }))}
+              options={selectedBrand.models.map(m => ({ value: m.name, label: m.name }))}
             />
           </div>
         )}
@@ -393,15 +412,64 @@ export function VehicleScreen({ setActiveTab }: { setActiveTab?: (tab: string) =
                 />
               </div>
             </div>
-            <div className="mt-6 lg:mt-0 relative">
-              <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-              <div className="w-full bg-secondary-container hover:bg-secondary transition-colors py-3 px-5 flex items-center justify-between rounded-xl relative z-0">
-                <span className="font-headline font-black text-on-secondary-container uppercase tracking-tight text-sm">{t('vehicle:change_photo')}</span>
-                <Camera className="text-on-secondary-container w-4 h-4" />
+            <div className="mt-6 lg:mt-0 space-y-2">
+              <div className="relative">
+                <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                <div className="w-full bg-secondary-container hover:bg-secondary transition-colors py-3 px-5 flex items-center justify-between rounded-xl relative z-0">
+                  <span className="font-headline font-black text-on-secondary-container uppercase tracking-tight text-sm">{t('vehicle:change_photo')}</span>
+                  <Camera className="text-on-secondary-container w-4 h-4" />
+                </div>
               </div>
+              {modelImages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowModelPhotos(p => !p)}
+                  className="w-full bg-surface-high hover:bg-surface-highest transition-colors py-3 px-5 flex items-center justify-between rounded-xl"
+                >
+                  <span className="font-headline font-black text-on-surface uppercase tracking-tight text-sm">Fotos del modelo</span>
+                  <Images className="text-primary w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </section>
+
+        {/* Model photo picker */}
+        {showModelPhotos && modelImages.length > 0 && (
+          <section className="bg-surface-low rounded-2xl p-5 shadow-elevation-1 animate-in slide-in-from-top-2 duration-300">
+            <p className="font-label text-[10px] font-extrabold text-secondary tracking-[0.15em] uppercase mb-3">
+              Fotos oficiales del modelo
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {modelImages.map((src, i) => {
+                const isActive = imagePreviewUrl === src;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setImagePreviewUrl(src);
+                      setFormData((p: any) => ({ ...p, _fotoUrl: src, _newPhoto: undefined }));
+                    }}
+                    className={`relative aspect-video rounded-xl overflow-hidden transition-all duration-150 active:scale-95 ${
+                      isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface-low' : 'opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                    {isActive && (
+                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-white drop-shadow" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-surface-variant mt-3 leading-snug">
+              Toca una foto para usarla como portada. Guarda los cambios para aplicarla.
+            </p>
+          </section>
+        )}
 
         {/* Section: Identity */}
         <section className="bg-surface-low rounded-2xl p-7 shadow-elevation-1">

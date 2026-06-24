@@ -13,6 +13,9 @@ export default defineConfig(({mode}) => {
       VitePWA({
         registerType: 'prompt',
         includeAssets: ['favicon.png', 'logo192.png', 'logo512.png'],
+        workbox: {
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB — covers motorcycleImages chunk
+        },
         manifest: {
           name: "NAVE | Control de Motos",
           short_name: "NAVE",

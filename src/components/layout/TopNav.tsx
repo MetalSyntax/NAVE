@@ -44,7 +44,7 @@ export function TopNav({ setActiveTab }: TopNavProps) {
 
   const avatarUrl = user?.avatar
     ? arrayBufferToUrl(user.avatar)
-    : 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=2070&auto=format&fit=crop';
+    : 'https://api.dicebear.com/9.x/bottts/svg?seed=nave&backgroundColor=transparent';
 
   return (
     <>
