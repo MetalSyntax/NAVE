@@ -3,8 +3,6 @@
 > **Creative North Star: "The Mechanical Redline"**
 > NAVE es una aplicación web y PWA diseñada bajo una estética de **Brutalismo Orgánico**. Con bordes afilados (0px border-radius), tipografía técnica y un contraste agresivo en tonos negros, rojos y dorados, NAVE emula la precisión y el estilo visual de los tacómetros y manuales mecánicos de alto rendimiento.
 
-## NAVE permite a los motociclistas realizar un seguimiento exhaustivo de su kilometraje, consumos de combustible, rutas en mapa, agendas de mantenimiento y manuales técnicos.
-
 ## ⚡ Características Principales
 
 - **Gestión Multi-Vehículo**: Añade y cambia rápidamente entre diferentes motocicletas con avatares personalizables (DiceBear) y clasificaciones por cilindrada (CC).
