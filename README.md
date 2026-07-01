@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="NAVE Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # NAVE — Control y Gestión de Motocicletas
 
 > **Creative North Star: "The Mechanical Redline"**
@@ -49,24 +45,30 @@ Ver tu app en Google AI Studio: [NAVE App](https://ai.studio/apps/9340ffb3-116c-
 ### Pasos para Ejecutar
 
 1. **Instalar dependencias**:
+
    ```bash
    npm install
    ```
-   *(O usando pnpm)*
+
+   _(O usando pnpm)_
+
    ```bash
    pnpm install
    ```
 
 2. **Configurar Variables de Entorno**:
    Crea un archivo `.env.local` en la raíz del proyecto y agrega tu API Key de Gemini:
+
    ```env
    GEMINI_API_KEY=tu_gemini_api_key_aqui
    ```
 
 3. **Ejecutar en modo Desarrollo**:
+
    ```bash
    npm run dev
    ```
+
    La aplicación estará disponible por defecto en [http://localhost:3000](http://localhost:3000).
 
 4. **Construir para Producción**:
@@ -81,22 +83,26 @@ Ver tu app en Google AI Studio: [NAVE App](https://ai.studio/apps/9340ffb3-116c-
 A continuación se detallan las mejoras y nuevas características del proyecto organizadas según el historial de confirmaciones de Git:
 
 ### v2.1.0
+
 - **Imágenes Optimizadas**: Integración de recursos gráficos comprimidos de motocicletas para los modelos más populares de **Bera** y **Empire Keeway** (`4dc214d`).
-- **Base de Datos Enriquecida**: Raspado de datos de motos, integración de logos de marcas en los módulos de *onboarding* y vehículo, avatares dinámicos usando DiceBear y categorización por cilindrada (CC) (`d59fbd1`).
+- **Base de Datos Enriquecida**: Raspado de datos de motos, integración de logos de marcas en los módulos de _onboarding_ y vehículo, avatares dinámicos usando DiceBear y categorización por cilindrada (CC) (`d59fbd1`).
 
 ### v2.0.0 (UX Overhaul & Rebrand)
-- **Rebranding Completo**: Transición oficial de marca de *Apex Velocity* a **NAVE**, incluyendo la renovación de logotipos, favicons e iconos PWA (`8bc02e8`, `56f99b1`, `f620afc`).
+
+- **Rebranding Completo**: Transición oficial de marca de _Apex Velocity_ a **NAVE**, incluyendo la renovación de logotipos, favicons e iconos PWA (`8bc02e8`, `56f99b1`, `f620afc`).
 - **Mejoras Reactivas y Correcciones**: Telemetría de combustible reactiva, guardas de seguridad en logs base y renderizado corregido de rutas en la sección de actividad reciente (`5f36736`).
 - **Dashboard UX**: Inclusión de ventana modal de notificaciones estilo campana, formularios rápidos en línea para kilómetros y gasolina, y cálculo reactivo de distancias (`7af3e09`).
 - **Experiencia de Usuario Rediseñada (Fases 1-7)**: Uso de lenguaje más humano y accesible, onboarding intuitivo paso a paso y la introducción del "Modo Experto" (`ca39195`).
 
 ### v1.1.0
+
 - **Integración de Servicios**: Lista de programas de mantenimiento preventivo vinculada al selector de servicios, con inputs de fecha y kilometraje para el registro histórico (`f1713c8`).
 - **Consolidación de Pantallas**: Corrección del error de pantalla de rutas no definida renderizando `LogsScreen` con la pestaña inicial configurada en `routes` (`c3108de`).
 - **Unificación de Registros**: Interfaz unificada de rutas y logs de mantenimiento, optimización de layouts para pantallas móviles, integración de watcher con polling continuo y adición de `ConfirmModal` (`673a47e`).
 - **Manuales y Rutas**: Implementación de MapView interactivo, carga dinámica de manuales técnicos y fichas de mantenimiento de vehículos venezolanos (`c9eedba`, `d987b8f`).
 
 ### v1.0.0
+
 - **Optimizaciones PWA**: Mejora de capacidades offline, registro de Service Workers y centralización del sistema de temas visuales (`72e211b`).
 - **Rediseño MD3 & Multi-vehículo**: Soporte para gestionar múltiples motos, indicador gráfico de nivel de gasolina, sección de notificaciones y controles avanzados de privacidad de datos (`b24fb82`, `72e93f4`).
 - **Inicialización**: Creación y configuración inicial del proyecto bajo el nombre de Apex Velocity (`f3ef8e4`, `a33d0e2`).
